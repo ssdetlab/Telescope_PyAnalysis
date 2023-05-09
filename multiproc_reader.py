@@ -1,0 +1,326 @@
+#!/usr/bin/python
+import multiprocessing as mp
+# from multiprocessing.pool import ThreadPool
+import time
+import os
+import os.path
+import math
+import subprocess
+import array
+import numpy as np
+import ROOT
+from ROOT import *
+from scipy.optimize import minimize
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
+from scipy.optimize import curve_fit
+from skspatial.objects import Line, Sphere
+from skspatial.plotting import plot_3d
+import pickle
+
+import config
+from config import *
+import utils
+from utils import *
+import svd_fit
+from svd_fit import *
+import chi2_fit
+from chi2_fit import *
+import hists
+from hists import *
+
+import objects
+from objects import *
+import pixels
+from pixels import *
+import clusters
+from clusters import *
+import truth
+from truth import *
+import noise
+from noise import *
+import candidate
+from candidate import *
+
+ROOT.gROOT.SetBatch(1)
+ROOT.gStyle.SetOptFit(0)
+# ROOT.gStyle.SetOptStat(0)
+
+# print("-----------------------------------------------------------------------------------")
+# print("Need to add TelescopeEvent lib and CVR libs:")
+# print("export LD_LIBRARY_PATH=$HOME/telescope_event:$LD_LIBRARY_PATH")
+# print("export LD_LIBRARY_PATH=$HOME/corryvreckan/corryvreckan-master/lib:$LD_LIBRARY_PATH")
+# print("-----------------------------------------------------------------------------------")
+
+# print("---- start loading libs")
+### see https://root.cern/manual/python/
+gInterpreter.AddIncludePath('~/telescope_event/')
+gSystem.Load('libtel_event_dict.dylib')
+gInterpreter.AddIncludePath('~/corryvreckan/corryvreckan-master/src/objects/')
+gSystem.Load('libCorryvreckanObjects.dylib')
+# print("---- finish loading libs")
+
+###############################################################
+###############################################################
+###############################################################
+doVtx = False
+runtype = "cosmics"
+pdgIdMatch = 13
+nmax2process = 100
+doplot = False
+doDiagnostics = False
+doNoiseScan = False
+isCVRroot = True
+mc = False
+cvmfs = False
+reconfig(mc,cvmfs)
+
+### globals
+absRes  = 0.15
+absChi2 = 20
+if(runtype=="source"):
+    absRes  *= 100
+    absChi2 *= 100
+
+
+allhistos = {}
+
+
+def GetTree(tfilename):
+    tfile = TFile(tfilename,"READ")
+    ttree = None
+    if(not isMC): ttree = tfile.Get("MyTree")
+    else:
+        if(isCVRroot): ttree = tfile.Get("Pixel")
+        else:          ttree = tfile.Get("tt")
+    return tfile,ttree
+
+
+def analyze(tfilenamein,irange,evt_range,masked):
+    lock = mp.Lock()
+    lock.acquire()
+    
+    ### important
+    sufx = "_"+str(irange)
+    
+    ### histos
+    tfoname = tfilenamein.replace(".root","_multiprocess_histograms"+sufx+".root")
+    tfo = TFile(tfoname,"RECREATE")
+    tfo.cd()
+    histos = book_histos(absRes,absChi2,tfo)
+    for name,hist in histos.items():
+        hist.SetName(name+sufx)
+        hist.SetDirectory(0)
+    
+    ### get the tree
+    tfile,ttree = GetTree(tfilenamein)
+    truth_tree = tfile.Get("MCParticle") if(isCVRroot) else None
+    
+    ### needed below
+    hPixMatix = GetPixMatrix()
+    
+    ### start the event loop
+    ievt_start = evt_range[0]
+    ievt_end   = evt_range[-1]
+    
+    for ievt in range(ievt_start,ievt_end+1):
+        ttree.GetEntry(ievt)
+        histos["h_events"].Fill(0.5)
+        histos["h_cutflow"].Fill( cuts.index("All") )
+        
+        ### truth particles
+        mcparticles = get_truth_cvr(truth_tree,ievt) if(isCVRroot and truth_tree is not None) else {}
+        for det in detectors:
+            xtru,ytru,ztru = getTruPos(det,mcparticles,pdgIdMatch)
+            histos["h_tru_3D"].Fill( xtru,ytru,ztru )
+            histos["h_tru_occ_2D_"+det].Fill( xtru,ytru )
+
+        ### get the pixels
+        n_active_planes, pixels = get_all_pixles(ttree,hPixMatix,isCVRroot)
+        for det in detectors:
+            fillPixOcc(det,pixels[det],masked[det],histos) ### fill pixel occupancy
+        if(n_active_planes!=len(detectors)): continue  ### CUT!!!
+        histos["h_cutflow"].Fill( cuts.index("N_{hits/det}>0") )
+        
+        ### get the non-noisy pixels but this will get emptied during clustering so also keep a duplicate
+        pixels_save = {}
+        for det in detectors:
+            goodpixels = getGoodPixels(det,pixels[det],masked[det],hPixMatix[det])
+            pixels[det] = goodpixels
+            pixels_save.update({det:goodpixels.copy()})
+
+        ### run clustering
+        clusters = {}
+        nclusters = 0
+        for det in detectors:
+            det_clusters = GetAllClusters(pixels[det],det)
+            clusters.update( {det:det_clusters} )
+            fillClsHists(det,clusters[det],masked[det],histos)
+            if(len(det_clusters)==1): nclusters += 1
+        if(nclusters!=len(detectors)): continue ### CUT!!!
+        histos["h_cutflow"].Fill( cuts.index("N_{cls/det}==1") )
+        
+        for det in detectors:
+            histos["h_cls_3D"].Fill( clusters[det][0].xmm,clusters[det][0].ymm,clusters[det][0].zmm )
+        
+        ### prepare the clusters for the fit
+        clsx = {}
+        clsy = {}
+        clsz = {}
+        clsdx = {}
+        clsdy = {}
+        for det in detectors:
+            clsx.update({det:clusters[det][0].xmm})
+            clsy.update({det:clusters[det][0].ymm})
+            clsz.update({det:clusters[det][0].zmm})
+            clsdx.update({det:clusters[det][0].dxmm})
+            clsdy.update({det:clusters[det][0].dymm})
+
+        ### get the event tracks
+        vtx  = [xVtx,yVtx,zVtx]    if(doVtx) else []
+        evtx = [exVtx,eyVtx,ezVtx] if(doVtx) else []
+        points_SVD,errors_SVD = SVD_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx,evtx)
+        points_Chi2,errors_Chi2 = Chi2_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx,evtx)
+        chisq,ndof,direction,centroid,params,success = fit_3d_chi2err(points_Chi2,errors_Chi2)
+        chi2ndof = chisq/ndof if(ndof>0) else 99999
+        track = Track(clusters,points_Chi2,errors_Chi2,chisq,ndof,direction,centroid,params,success)
+        if(not success): continue
+        histos["h_cutflow"].Fill( cuts.index("Chi2 Fitted") )
+        histos["h_3Dchi2err"].Fill(chi2ndof)
+        histos["h_3Dchi2err_zoom"].Fill(chi2ndof)
+        histos["h_Chi2_phi"].Fill(track.phi)
+        histos["h_Chi2_theta"].Fill(track.theta)
+        if(abs(np.sin(track.theta))>1e-10):
+            histos["h_Chi2_theta_weighted"].Fill( track.theta,abs(1/(2*np.pi*np.sin(track.theta))) )
+        if(chi2ndof<=450):
+            histos["h_cutflow"].Fill( cuts.index("Fit #chi^{2}/N_{DoF}#leq450") )
+        
+        
+        ### Chi2 track to cluster residuals
+        fill_trk2cls_residuals(points_SVD,direction,centroid,"h_Chi2fit_res_trk2cls",histos)
+        ### Chi2 track to truth residuals
+        if(isMC): fill_trk2tru_residuals(mcparticles,pdgIdMatch,points_SVD,direction,centroid,"h_Chi2fit_res_trk2tru",histos)
+        ### Chi2 fit points on laters
+        fillFitOcc(params,"h_fit_occ_2D", "h_fit_3D",histos)
+        ### Chi2 track to vertex residuals
+        if(doVtx): fill_trk2vtx_residuals(vtx,direction,centroid,"h_Chi2fit_res_trk2vtx",histos)
+        
+        ### fill cluster size vs true position
+        if(isCVRroot):
+            for det in detectors:
+                xtru,ytru,ztru = getTruPos(det,mcparticles,pdgIdMatch)
+                wgt = clusters[det][0].n
+                posx = ((xtru-pix_x/2.)%(2*pix_x))
+                posy = ((ytru-pix_y/2.)%(2*pix_y))
+                histos["h_csize_vs_trupos"].Fill(posx,posy,wgt)
+                histos["h_ntrks_vs_trupos"].Fill(posx,posy)
+                histos["h_csize_vs_trupos_"+det].Fill(posx,posy,wgt)
+                histos["h_ntrks_vs_trupos_"+det].Fill(posx,posy)
+                ### divide into smaller sizes
+                strcsize = str(wgt) if(wgt<5) else "n"
+                histos["h_csize_"+strcsize+"_vs_trupos"].Fill(posx,posy,wgt)
+                histos["h_ntrks_"+strcsize+"_vs_trupos"].Fill(posx,posy)
+                histos["h_csize_"+strcsize+"_vs_trupos_"+det].Fill(posx,posy,wgt)
+                histos["h_ntrks_"+strcsize+"_vs_trupos_"+det].Fill(posx,posy)
+                
+        ### fill the event data and add to events
+        ev = Event(pixels_save,clusters,track,mcparticles)
+        
+    ### end
+    print("Worker of",irange,"is done!")
+    lock.release()
+    return histos
+
+
+
+def collect_errors(error):
+    ### https://superfastpython.com/multiprocessing-pool-error-callback-functions-in-python/
+    print(f'Error: {error}', flush=True)
+
+def collect_histos(histos):
+    ### https://www.machinelearningplus.com/python/parallel-processing-python/
+    global allhistos
+    for name,hist in allhistos.items():
+        hist.Add(histos[name])
+
+
+if __name__ == "__main__":
+    # get the start time
+    st = time.time()
+    
+    nCPUs = mp.cpu_count()
+    print("nCPUs:",nCPUs)
+    
+    # Create a pool of workers
+    pool = mp.Pool(nCPUs)
+    
+    # Parallelize the filling of the histograms
+    # tfilenamein = "../../../Downloads/data_telescope/eudaq/Apr24/source_vbb3_dv9/tree_vbb3_sr_dv9_vresetd147_clip60_run699.root"
+    tfilenamein = "../../../Downloads/data_telescope/eudaq/Apr25/cosmics_sim_threshold120_cvr_root/out_structured_corry_TelescopeRunCosmics_telescope_cosmic_mu_0_120e.root"
+    tfnoisename = tfilenamein.replace(".root","_noise.root")
+    masked = GetNoiseMask(tfnoisename)
+    
+    ### the output histos
+    tfilenameout = tfilenamein.replace(".root","_multiprocess_histograms.root")
+    tfo = TFile(tfilenameout,"RECREATE")
+    tfo.cd()
+    allhistos = book_histos(absRes,absChi2,tfo)
+    
+    ### start the loop
+    events = nmax2process if(nmax2process>0) else ttree.GetEntries()
+    bundle = nCPUs
+    fullrange = range(events)
+    ranges = np.array_split(fullrange,bundle)
+    for irng,rng in enumerate(ranges):
+        print("Submitting range["+str(irng)+"]:",rng[0],"...",rng[-1])
+        pool.apply_async(analyze, args=(tfilenamein,irng,rng,masked), callback=collect_histos, error_callback=collect_errors)
+    
+    ### Wait for all the workers to finish
+    pool.close()
+    pool.join()
+    
+        
+    #######################
+    ### post processing ###
+    #######################
+    tfo.cd()
+    ### cluster mean size vs position
+    hname = "h_csize_vs_trupos"
+    hnewname = hname.replace("csize","mean")
+    hdenname = hname.replace("csize","ntrks")
+    allhistos.update( {hnewname:allhistos[hname].Clone(hnewname)} )
+    allhistos[hnewname].Divide(allhistos[hdenname])
+    for det in detectors:
+        tfo.cd(det)
+        hname = "h_csize_vs_trupos_"+det
+        hnewname = hname.replace("csize","mean")
+        hdenname = hname.replace("csize","ntrks")
+        allhistos.update( {hnewname:allhistos[hname].Clone(hnewname)} )
+        allhistos[hnewname].Divide(allhistos[hdenname])
+    for j in range(1,6):
+        tfo.cd()
+        strcsize = str(j) if(j<5) else "n"
+        hname = "h_csize_"+strcsize+"_vs_trupos"
+        hnewname = hname.replace("csize","mean")
+        hdenname = hname.replace("csize","ntrks")
+        allhistos.update( {hnewname:allhistos[hname].Clone(hnewname)} )
+        allhistos[hnewname].Divide(allhistos[hdenname])
+        for det in detectors:
+            tfo.cd(det)
+            hname = "h_csize_"+strcsize+"_vs_trupos_"+det
+            hnewname = hname.replace("csize","mean")
+            hdenname = hname.replace("csize","ntrks")
+            allhistos.update( {hnewname:allhistos[hname].Clone(hnewname)} )
+            allhistos[hnewname].Divide(allhistos[hdenname])
+
+    
+    # Save the histograms to a file
+    tfo.Write()
+    tfo.Close()
+    
+    # get the end time
+    et = time.time()
+    # get the execution time
+    elapsed_time = et - st
+    print('Execution time:', elapsed_time, 'seconds')
