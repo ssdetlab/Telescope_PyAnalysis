@@ -76,15 +76,15 @@ cvmfs = False
 reconfig(mc,cvmfs)
 # tfilenamein = "~/Downloads/data_telescope/eudaq/Apr03/source_vbb6_dv15/tree_vbb6_sr90_120_Apr03_dv15.root" ## threshold is ~120e(?)
 # tfilenamein = "~/Downloads/data_telescope/eudaq/Mar26/source_vbb6/tree_vbb6_src_120_Mar24.root" ## high threshold: ~400e(?)
-# tfilenamein = "../../../Downloads/data_telescope/Mar26/sim_out_mar_26_newstats/mc_sim_hadd_mar26_flattree.root"
-# tfilenamein = "../../../Downloads/data_telescope/eudaq/Mar26/cosmics_vbb6/tree.root"
-# tfilenamein = "../../../Downloads/data_telescope/Mar26/sim_cosmics_Apr11_thresh400e/out_corry_TelescopeRunCosmics_telescope_cosmic_mu_0_flattree.root"
-# tfilenamein = "../../../Downloads/data_telescope/eudaq/Apr23/cosmics_vbb6_24h_threshold7dv/tree_vbb6_cosmic_Apr10_dv7_vresetd200_clip70_run696.root"
-# tfilenamein = "../../../Downloads/data_telescope/Mar26/sim_out_mar_27_cosmics/corry_out_telescope_cosmic_mu_0_flattree.root"
-# tfilenamein = "../../../Downloads/data_telescope/Mar26/sim_src_Apr7_thresh400e/out_corry_allrun_telescope_400eThreshold_ALPIDEEField.root"
-tfilenamein = "../../../Downloads/data_telescope/eudaq/Apr24/source_vbb3_dv9/tree_vbb3_sr_dv9_vresetd147_clip60_run699.root"
-# tfilenamein = "../../../Downloads/data_telescope/eudaq/Apr25/cosmics_sim_threshold400_cvr_root/out_structured_corry_TelescopeRunCosmics_telescope_cosmic_mu_0.root"
-# tfilenamein = "../../../Downloads/data_telescope/eudaq/Apr25/cosmics_sim_threshold120_cvr_root/out_structured_corry_TelescopeRunCosmics_telescope_cosmic_mu_0_120e.root"
+# tfilenamein = "~/Downloads/data_telescope/Mar26/sim_out_mar_26_newstats/mc_sim_hadd_mar26_flattree.root"
+# tfilenamein = "~/Downloads/data_telescope/eudaq/Mar26/cosmics_vbb6/tree.root"
+# tfilenamein = "~/Downloads/data_telescope/Mar26/sim_cosmics_Apr11_thresh400e/out_corry_TelescopeRunCosmics_telescope_cosmic_mu_0_flattree.root"
+# tfilenamein = "~/Downloads/data_telescope/eudaq/Apr23/cosmics_vbb6_24h_threshold7dv/tree_vbb6_cosmic_Apr10_dv7_vresetd200_clip70_run696.root"
+# tfilenamein = "~/Downloads/data_telescope/Mar26/sim_out_mar_27_cosmics/corry_out_telescope_cosmic_mu_0_flattree.root"
+# tfilenamein = "~/Downloads/data_telescope/Mar26/sim_src_Apr7_thresh400e/out_corry_allrun_telescope_400eThreshold_ALPIDEEField.root"
+tfilenamein = "~/Downloads/data_telescope/eudaq/Apr24/source_vbb3_dv9/tree_vbb3_sr_dv9_vresetd147_clip60_run699.root"
+# tfilenamein = "~/Downloads/data_telescope/eudaq/Apr25/cosmics_sim_threshold400_cvr_root/out_structured_corry_TelescopeRunCosmics_telescope_cosmic_mu_0.root"
+# tfilenamein = "~/Downloads/data_telescope/eudaq/Apr25/cosmics_sim_threshold120_cvr_root/out_structured_corry_TelescopeRunCosmics_telescope_cosmic_mu_0_120e.root"
 
 
 

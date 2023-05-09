@@ -256,8 +256,8 @@ if __name__ == "__main__":
     pool = mp.Pool(nCPUs)
     
     # Parallelize the filling of the histograms
-    # tfilenamein = "../../../Downloads/data_telescope/eudaq/Apr24/source_vbb3_dv9/tree_vbb3_sr_dv9_vresetd147_clip60_run699.root"
-    tfilenamein = "../../../Downloads/data_telescope/eudaq/Apr25/cosmics_sim_threshold120_cvr_root/out_structured_corry_TelescopeRunCosmics_telescope_cosmic_mu_0_120e.root"
+    # tfilenamein = "~/Downloads/data_telescope/eudaq/Apr24/source_vbb3_dv9/tree_vbb3_sr_dv9_vresetd147_clip60_run699.root"
+    tfilenamein = "~/Downloads/data_telescope/eudaq/Apr25/cosmics_sim_threshold120_cvr_root/out_structured_corry_TelescopeRunCosmics_telescope_cosmic_mu_0_120e.root"
     tfnoisename = tfilenamein.replace(".root","_noise.root")
     masked = GetNoiseMask(tfnoisename)
     
