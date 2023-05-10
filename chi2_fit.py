@@ -80,10 +80,10 @@ def fit_3d_chi2err(points,errors):
     ez = errors[2]
     params,chisq,ndof,success = fit_line_3d_chi2err(x,y,z,ex,ey,ez)
     # Plot the points and the fitted line
-    x0,y0,z0 = line(zFirst, params)
-    x1,y1,z1 = line(zLast,  params)
+    x0,y0,z0 = line(cfg["zFirst"], params)
+    x1,y1,z1 = line(cfg["zLast"],  params)
     #TODO: need to check this:
-    xm,ym,zm = line((zLast-zFirst)/2., params) #TODO
+    xm,ym,zm = line((cfg["zLast"]-cfg["zFirst"])/2., params) #TODO
     centroid  = [xm,ym,zm]                     #TODO
     direction = [x1-x0,y1-y0,z1-z0]            #TODO
     return chisq,ndof,direction,centroid,params,success
@@ -98,7 +98,7 @@ def plot_3d_chi2err(evt,points,params,show=False):
     x0,y0,z0 = line(zFirst, params)
     x1,y1,z1 = line(zLast,  params)
     #TODO: need to check this:
-    xm,ym,zm = line((zLast-zFirst)/2., params) #TODO
+    xm,ym,zm = line((cfg["zLast"]-cfg["zFirst"])/2., params) #TODO
     centroid  = [xm,ym,zm]                     #TODO
     direction = [x1-x0,y1-y0,z1-z0]            #TODO
     # Plot the data and the fit
@@ -112,14 +112,14 @@ def plot_3d_chi2err(evt,points,params,show=False):
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
     ax.set_zlim(zlim)
-    plt.xlim(world["x"])
-    plt.ylim(world["y"])
-    ax.set_zlim(world["z"])
+    plt.xlim(cfg["world"]["x"])
+    plt.ylim(cfg["world"]["y"])
+    ax.set_zlim(cfg["world"]["z"])
     ax.set_xlabel("x [mm]")
     ax.set_ylabel("y [mm]")
     ax.set_zlabel("z [mm]")
     L1verts = getChips()
     ax.add_collection3d(Poly3DCollection(L1verts, facecolors='green', linewidths=1, edgecolors='g', alpha=.20))
-    ax.axes.set_aspect('equal') if(not isCVMFS) else ax.axes.set_aspect('auto')
+    ax.axes.set_aspect('equal') if(not cfg["isCVMFS"]) else ax.axes.set_aspect('auto')
     plt.title("Chi2 w/err fit (evt #"+str(evt)+")", fontdict=None, loc='center', pad=None)
     plt.show()

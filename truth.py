@@ -12,7 +12,7 @@ from objects import *
 def get_truth_cvr(truth_tree,ientry):
     truth_tree.GetEntry(ientry)
     mcparticles = {}
-    for det in detectors:
+    for det in cfg["detectors"]:
         mcparticles.update({det:[]})
     for i in range(truth_tree.ALPIDE_0.size()):
         det = "ALPIDE_0"

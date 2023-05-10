@@ -57,7 +57,7 @@ def res_track2cluster(detector, points, direction, centroid):
     x  = points[:,0]#+offsets_x[detector]
     y  = points[:,1]#+offsets_y[detector]
     zpoints = points[:,2]
-    i  = detectors.index(detector)
+    i  = cfg["detectors"].index(detector)
     if(len(points)==4): i = i+1 ### when the vertex is the first point in the points array
     z  = zpoints[i]
     xonline,yonline = xyofz(r1,r2,z)
@@ -69,7 +69,7 @@ def res_track2cluster(detector, points, direction, centroid):
 def res_track2truth(detector, mcparticles, pdgIdMatch, points, direction, centroid):
     r1,r2 = r1r2(direction,centroid)
     zpoints = points[:,2]
-    i = detectors.index(detector)
+    i = cfg["detectors"].index(detector)
     j = i
     if(len(points)==4): i = i+1 ### when the vertex is the first point in the points array
     z = zpoints[i]
@@ -100,18 +100,18 @@ def res_track2vertex(vertex, direction, centroid):
 def getChips():
     ### draw the chips: https://stackoverflow.com/questions/67410270/how-to-draw-a-flat-3d-rectangle-in-matplotlib
     L1verts = []
-    for det in detectors:
-        x0 = rdetectors[det][0]
-        y0 = rdetectors[det][1]
-        z0 = rdetectors[det][2]
-        L1verts.append( np.array([ [x0-chipX/2.,y0-chipY/2.,z0],
-                                   [x0-chipX/2.,y0+chipY/2.,z0],
-                                   [x0+chipX/2.,y0+chipY/2.,z0],
-                                   [x0+chipX/2.,y0-chipY/2.,z0] ]) )
+    for det in cfg["detectors"]:
+        x0 = cfg["rdetectors"][det][0]
+        y0 = cfg["rdetectors"][det][1]
+        z0 = cfg["rdetectors"][det][2]
+        L1verts.append( np.array([ [x0-cfg["chipX"]/2.,y0-cfg["chipY"]/2.,z0],
+                                   [x0-cfg["chipX"]/2.,y0+cfg["chipY"]/2.,z0],
+                                   [x0+cfg["chipX"]/2.,y0+cfg["chipY"]/2.,z0],
+                                   [x0+cfg["chipX"]/2.,y0-cfg["chipY"]/2.,z0] ]) )
     return L1verts
 
 
 def InitCutflow():
     cutflow = {}
-    for cut in cuts: cutflow.update({cut:0})
+    for cut in cfg["cuts"]: cutflow.update({cut:0})
     return cutflow

@@ -19,8 +19,17 @@ from skspatial.objects import Line, Sphere
 from skspatial.plotting import plot_3d
 import pickle
 
+import argparse
+parser = argparse.ArgumentParser(description='serial_analyzer.py...')
+parser.add_argument('-conf', metavar='config file', required=True,  help='full path to config file')
+argus = parser.parse_args()
+configfile = argus.conf
+
 import config
 from config import *
+### must be called here (first) and only once!
+init_config(configfile,False)
+
 import utils
 from utils import *
 import svd_fit
@@ -64,25 +73,6 @@ gSystem.Load('libCorryvreckanObjects.dylib')
 ###############################################################
 ###############################################################
 ###############################################################
-doVtx = False
-runtype = "cosmics"
-pdgIdMatch = 13
-nmax2process = 100
-doplot = False
-doDiagnostics = False
-doNoiseScan = False
-isCVRroot = True
-mc = False
-cvmfs = False
-reconfig(mc,cvmfs)
-
-### globals
-absRes  = 0.15
-absChi2 = 20
-if(runtype=="source"):
-    absRes  *= 100
-    absChi2 *= 100
-
 
 allhistos = {}
 
@@ -90,9 +80,9 @@ allhistos = {}
 def GetTree(tfilename):
     tfile = TFile(tfilename,"READ")
     ttree = None
-    if(not isMC): ttree = tfile.Get("MyTree")
+    if(not cfg["isMC"]): ttree = tfile.Get("MyTree")
     else:
-        if(isCVRroot): ttree = tfile.Get("Pixel")
+        if(cfg["isCVRroot"]): ttree = tfile.Get("Pixel")
         else:          ttree = tfile.Get("tt")
     return tfile,ttree
 
@@ -108,14 +98,14 @@ def analyze(tfilenamein,irange,evt_range,masked):
     tfoname = tfilenamein.replace(".root","_multiprocess_histograms"+sufx+".root")
     tfo = TFile(tfoname,"RECREATE")
     tfo.cd()
-    histos = book_histos(absRes,absChi2,tfo)
+    histos = book_histos(tfo)
     for name,hist in histos.items():
         hist.SetName(name+sufx)
         hist.SetDirectory(0)
     
     ### get the tree
     tfile,ttree = GetTree(tfilenamein)
-    truth_tree = tfile.Get("MCParticle") if(isCVRroot) else None
+    truth_tree = tfile.Get("MCParticle") if(cfg["isCVRroot"]) else None
     
     ### needed below
     hPixMatix = GetPixMatrix()
@@ -127,25 +117,25 @@ def analyze(tfilenamein,irange,evt_range,masked):
     for ievt in range(ievt_start,ievt_end+1):
         ttree.GetEntry(ievt)
         histos["h_events"].Fill(0.5)
-        histos["h_cutflow"].Fill( cuts.index("All") )
+        histos["h_cutflow"].Fill( cfg["cuts"].index("All") )
         
         ### truth particles
-        mcparticles = get_truth_cvr(truth_tree,ievt) if(isCVRroot and truth_tree is not None) else {}
-        for det in detectors:
-            xtru,ytru,ztru = getTruPos(det,mcparticles,pdgIdMatch)
+        mcparticles = get_truth_cvr(truth_tree,ievt) if(cfg["isCVRroot"] and truth_tree is not None) else {}
+        for det in cfg["detectors"]:
+            xtru,ytru,ztru = getTruPos(det,mcparticles,cfg["pdgIdMatch"])
             histos["h_tru_3D"].Fill( xtru,ytru,ztru )
             histos["h_tru_occ_2D_"+det].Fill( xtru,ytru )
 
         ### get the pixels
-        n_active_planes, pixels = get_all_pixles(ttree,hPixMatix,isCVRroot)
-        for det in detectors:
+        n_active_planes, pixels = get_all_pixles(ttree,hPixMatix,cfg["isCVRroot"])
+        for det in cfg["detectors"]:
             fillPixOcc(det,pixels[det],masked[det],histos) ### fill pixel occupancy
-        if(n_active_planes!=len(detectors)): continue  ### CUT!!!
-        histos["h_cutflow"].Fill( cuts.index("N_{hits/det}>0") )
+        if(n_active_planes!=len(cfg["detectors"])): continue  ### CUT!!!
+        histos["h_cutflow"].Fill( cfg["cuts"].index("N_{hits/det}>0") )
         
         ### get the non-noisy pixels but this will get emptied during clustering so also keep a duplicate
         pixels_save = {}
-        for det in detectors:
+        for det in cfg["detectors"]:
             goodpixels = getGoodPixels(det,pixels[det],masked[det],hPixMatix[det])
             pixels[det] = goodpixels
             pixels_save.update({det:goodpixels.copy()})
@@ -153,15 +143,15 @@ def analyze(tfilenamein,irange,evt_range,masked):
         ### run clustering
         clusters = {}
         nclusters = 0
-        for det in detectors:
+        for det in cfg["detectors"]:
             det_clusters = GetAllClusters(pixels[det],det)
             clusters.update( {det:det_clusters} )
             fillClsHists(det,clusters[det],masked[det],histos)
             if(len(det_clusters)==1): nclusters += 1
-        if(nclusters!=len(detectors)): continue ### CUT!!!
-        histos["h_cutflow"].Fill( cuts.index("N_{cls/det}==1") )
+        if(nclusters!=len(cfg["detectors"])): continue ### CUT!!!
+        histos["h_cutflow"].Fill( cfg["cuts"].index("N_{cls/det}==1") )
         
-        for det in detectors:
+        for det in cfg["detectors"]:
             histos["h_cls_3D"].Fill( clusters[det][0].xmm,clusters[det][0].ymm,clusters[det][0].zmm )
         
         ### prepare the clusters for the fit
@@ -170,7 +160,7 @@ def analyze(tfilenamein,irange,evt_range,masked):
         clsz = {}
         clsdx = {}
         clsdy = {}
-        for det in detectors:
+        for det in cfg["detectors"]:
             clsx.update({det:clusters[det][0].xmm})
             clsy.update({det:clusters[det][0].ymm})
             clsz.update({det:clusters[det][0].zmm})
@@ -178,15 +168,15 @@ def analyze(tfilenamein,irange,evt_range,masked):
             clsdy.update({det:clusters[det][0].dymm})
 
         ### get the event tracks
-        vtx  = [xVtx,yVtx,zVtx]    if(doVtx) else []
-        evtx = [exVtx,eyVtx,ezVtx] if(doVtx) else []
+        vtx  = [cfg["xVtx"],cfg["yVtx"],cfg["zVtx"]]    if(cfg["doVtx"]) else []
+        evtx = [cfg["exVtx"],cfg["eyVtx"],cfg["ezVtx"]] if(cfg["doVtx"]) else []
         points_SVD,errors_SVD = SVD_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx,evtx)
         points_Chi2,errors_Chi2 = Chi2_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx,evtx)
         chisq,ndof,direction,centroid,params,success = fit_3d_chi2err(points_Chi2,errors_Chi2)
         chi2ndof = chisq/ndof if(ndof>0) else 99999
         track = Track(clusters,points_Chi2,errors_Chi2,chisq,ndof,direction,centroid,params,success)
         if(not success): continue
-        histos["h_cutflow"].Fill( cuts.index("Chi2 Fitted") )
+        histos["h_cutflow"].Fill( cfg["cuts"].index("Fitted") )
         histos["h_3Dchi2err"].Fill(chi2ndof)
         histos["h_3Dchi2err_zoom"].Fill(chi2ndof)
         histos["h_Chi2_phi"].Fill(track.phi)
@@ -194,25 +184,25 @@ def analyze(tfilenamein,irange,evt_range,masked):
         if(abs(np.sin(track.theta))>1e-10):
             histos["h_Chi2_theta_weighted"].Fill( track.theta,abs(1/(2*np.pi*np.sin(track.theta))) )
         if(chi2ndof<=450):
-            histos["h_cutflow"].Fill( cuts.index("Fit #chi^{2}/N_{DoF}#leq450") )
+            histos["h_cutflow"].Fill( cfg["cuts"].index("#chi^{2}/N_{DoF}#leq450") )
         
         
         ### Chi2 track to cluster residuals
         fill_trk2cls_residuals(points_SVD,direction,centroid,"h_Chi2fit_res_trk2cls",histos)
         ### Chi2 track to truth residuals
-        if(isMC): fill_trk2tru_residuals(mcparticles,pdgIdMatch,points_SVD,direction,centroid,"h_Chi2fit_res_trk2tru",histos)
+        if(cfg["isMC"]): fill_trk2tru_residuals(mcparticles,cfg["pdgIdMatch"],points_SVD,direction,centroid,"h_Chi2fit_res_trk2tru",histos)
         ### Chi2 fit points on laters
         fillFitOcc(params,"h_fit_occ_2D", "h_fit_3D",histos)
         ### Chi2 track to vertex residuals
-        if(doVtx): fill_trk2vtx_residuals(vtx,direction,centroid,"h_Chi2fit_res_trk2vtx",histos)
+        if(cfg["doVtx"]): fill_trk2vtx_residuals(vtx,direction,centroid,"h_Chi2fit_res_trk2vtx",histos)
         
         ### fill cluster size vs true position
-        if(isCVRroot):
-            for det in detectors:
-                xtru,ytru,ztru = getTruPos(det,mcparticles,pdgIdMatch)
+        if(cfg["isCVRroot"]):
+            for det in cfg["detectors"]:
+                xtru,ytru,ztru = getTruPos(det,mcparticles,cfg["pdgIdMatch"])
                 wgt = clusters[det][0].n
-                posx = ((xtru-pix_x/2.)%(2*pix_x))
-                posy = ((ytru-pix_y/2.)%(2*pix_y))
+                posx = ((xtru-cfg["pix_x"]/2.)%(2*cfg["pix_x"]))
+                posy = ((ytru-cfg["pix_y"]/2.)%(2*cfg["pix_y"]))
                 histos["h_csize_vs_trupos"].Fill(posx,posy,wgt)
                 histos["h_ntrks_vs_trupos"].Fill(posx,posy)
                 histos["h_csize_vs_trupos_"+det].Fill(posx,posy,wgt)
@@ -249,8 +239,12 @@ if __name__ == "__main__":
     # get the start time
     st = time.time()
     
+    ### architecture depndent
     nCPUs = mp.cpu_count()
     print("nCPUs:",nCPUs)
+    
+    # print config once
+    show_config()
     
     # Create a pool of workers
     pool = mp.Pool(nCPUs)
@@ -265,12 +259,12 @@ if __name__ == "__main__":
     tfilenameout = tfilenamein.replace(".root","_multiprocess_histograms.root")
     tfo = TFile(tfilenameout,"RECREATE")
     tfo.cd()
-    allhistos = book_histos(absRes,absChi2,tfo)
+    allhistos = book_histos(tfo)
     
     ### start the loop
-    events = nmax2process if(nmax2process>0) else ttree.GetEntries()
+    nevents = cfg["nmax2process"] if(cfg["nmax2process"]>0) else ttree.GetEntries()
     bundle = nCPUs
-    fullrange = range(events)
+    fullrange = range(nevents)
     ranges = np.array_split(fullrange,bundle)
     for irng,rng in enumerate(ranges):
         print("Submitting range["+str(irng)+"]:",rng[0],"...",rng[-1])
@@ -291,7 +285,7 @@ if __name__ == "__main__":
     hdenname = hname.replace("csize","ntrks")
     allhistos.update( {hnewname:allhistos[hname].Clone(hnewname)} )
     allhistos[hnewname].Divide(allhistos[hdenname])
-    for det in detectors:
+    for det in cfg["detectors"]:
         tfo.cd(det)
         hname = "h_csize_vs_trupos_"+det
         hnewname = hname.replace("csize","mean")
@@ -306,7 +300,7 @@ if __name__ == "__main__":
         hdenname = hname.replace("csize","ntrks")
         allhistos.update( {hnewname:allhistos[hname].Clone(hnewname)} )
         allhistos[hnewname].Divide(allhistos[hdenname])
-        for det in detectors:
+        for det in cfg["detectors"]:
             tfo.cd(det)
             hname = "h_csize_"+strcsize+"_vs_trupos_"+det
             hnewname = hname.replace("csize","mean")

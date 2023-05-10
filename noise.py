@@ -71,12 +71,12 @@ def GetNoiseMask(tfnoisename):
     h2D_noise       = {}
     # ttxtnoisename = tfnoisename.replace(".root",".txt")
     # fnoisetxt = open(ttxtnoisename,"w")
-    for det in detectors:
+    for det in cfg["detectors"]:
         noise_threshold.update( {det:-1} )
         h1D_noise.update( { det:tfilenoise.Get("h_noisescan_pix_occ_1D_"+det) } )
         h2D_noise.update( { det:tfilenoise.Get("h_noisescan_pix_occ_2D_"+det) } )
-        avg,std,threshold = getNoiseThreshold(h1D_noise[det],pTrim,nSigma,zeroSupp)
-        print(det,": avg,std:",avg,std,"--> threshold:",threshold,"(pTrim=",pTrim,")")
+        avg,std,threshold = getNoiseThreshold(h1D_noise[det],cfg["pTrim"],cfg["nSigma"],cfg["zeroSupp"])
+        print(det,": avg,std:",avg,std,"--> threshold:",threshold,"(pTrim=",cfg["pTrim"],")")
         # fnoisetxt.write(det,": avg,std:",avg,std,"--> threshold:",threshold,"(pTrim=",pTrim,")")
         noise_threshold[det] = threshold if(threshold>noise_threshold[det]) else noise_threshold[det]
         print("Final noise threshold for",det,"is:",noise_threshold[det])

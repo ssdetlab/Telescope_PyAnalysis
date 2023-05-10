@@ -14,11 +14,11 @@ from objects import *
 
 def SVD_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx=[],evtx=[]):
     isvtx = (len(vtx)>0 and len(evtx)>0)
-    clusters = [ [xVtx, yVtx, zVtx] ]  if(isvtx) else []
-    clerrors = [ [exVtx,eyVtx,ezVtx] ] if(isvtx) else []
-    for det in detectors:
-        clusters.append( [clsx[det]+offsets_x[det], clsy[det]+offsets_y[det], clsz[det]] )
-        clerrors.append( [clsdx[det],               clsdy[det],               ezCls] )
+    clusters = [ [cfg["xVtx"], cfg["yVtx"], cfg["zVtx"]] ]  if(isvtx) else []
+    clerrors = [ [cfg["exVtx"],cfg["eyVtx"],cfg["ezVtx"]] ] if(isvtx) else []
+    for det in cfg["detectors"]:
+        clusters.append( [clsx[det]+cfg["offsets_x"][det], clsy[det]+cfg["offsets_y"][det], clsz[det]] )
+        clerrors.append( [clsdx[det],                      clsdy[det],                      cfg["ezCls"]] )
     points = np.array(clusters)
     errors = np.array(clerrors)
     return points,errors
@@ -26,19 +26,19 @@ def SVD_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx=[],evtx=[]):
 
 def Chi2_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx=[],evtx=[]):
     isvtx = (len(vtx)>0 and len(evtx)>0)
-    clusters_x = [xVtx]  if(isvtx) else []
-    clusters_y = [yVtx]  if(isvtx) else []
-    clusters_z = [zVtx]  if(isvtx) else []
-    clerrors_x = [exVtx] if(isvtx) else []
-    clerrors_y = [eyVtx] if(isvtx) else []
-    clerrors_z = [ezVtx] if(isvtx) else []
-    for det in detectors:
-        clusters_x.append( clsx[det]+offsets_x[det] )
-        clusters_y.append( clsy[det]+offsets_y[det] )
+    clusters_x = [cfg["xVtx"]]  if(isvtx) else []
+    clusters_y = [cfg["yVtx"]]  if(isvtx) else []
+    clusters_z = [cfg["zVtx"]]  if(isvtx) else []
+    clerrors_x = [cfg["exVtx"]] if(isvtx) else []
+    clerrors_y = [cfg["eyVtx"]] if(isvtx) else []
+    clerrors_z = [cfg["ezVtx"]] if(isvtx) else []
+    for det in cfg["detectors"]:
+        clusters_x.append( clsx[det]+cfg["offsets_x"][det] )
+        clusters_y.append( clsy[det]+cfg["offsets_y"][det] )
         clusters_z.append( clsz[det] )
         clerrors_x.append( clsdx[det] )
         clerrors_y.append( clsdy[det] )
-        clerrors_z.append( ezCls )
+        clerrors_z.append( cfg["ezCls"] )
     points = np.array([ clusters_x,clusters_y,clusters_z ])
     errors = np.array([ clerrors_x,clerrors_y,clerrors_z ])
     return points,errors

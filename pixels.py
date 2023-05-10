@@ -16,7 +16,7 @@ def get_all_pixles_eudaq(evt,hPixMatrix):
     planes = evt.event.ch_ev_buffer
     pixels = {}
     raws   = {}
-    for det in detectors:
+    for det in cfg["detectors"]:
         pixels.update({det:[]})
         raws.update({det:[]})
     n_active_planes = 0
@@ -37,7 +37,7 @@ def get_all_pixles_eudaq(evt,hPixMatrix):
 def get_all_pixles_mc(evt,hPixMatrix):
     pixels = {}
     raws = {}
-    for det in detectors:
+    for det in cfg["detectors"]:
         pixels.update({det:[]})
         raws.update({det:[]})
     n_active_planes = (evt.ALPIDE_0_pix_col.size()>0) + (evt.ALPIDE_1_pix_col.size()>0) + (evt.ALPIDE_2_pix_col.size()>0)
@@ -71,7 +71,7 @@ def get_all_pixles_mc(evt,hPixMatrix):
 def get_all_pixles_cvr(evt,hPixMatrix):
     pixels = {}
     raws = {}
-    for det in detectors:
+    for det in cfg["detectors"]:
         pixels.update({det:[]})
         raws.update({det:[]})
     n_active_planes = (evt.ALPIDE_0.size()>0) + (evt.ALPIDE_1.size()>0) + (evt.ALPIDE_2.size()>0)
@@ -108,8 +108,8 @@ def get_all_pixles_cvr(evt,hPixMatrix):
 def get_all_pixles(evt,hPixMatrix,isCVRroot=False):
     n_active_planes = -1
     pixels = {}
-    if(not isMC): n_active_planes,pixels = get_all_pixles_eudaq(evt,hPixMatrix)
+    if(not cfg["isMC"]): n_active_planes,pixels = get_all_pixles_eudaq(evt,hPixMatrix)
     else:
-        if(isCVRroot): n_active_planes,pixels = get_all_pixles_cvr(evt,hPixMatrix)
-        else:          n_active_planes,pixels = get_all_pixles_mc(evt,hPixMatrix)
+        if(isCVRroot):   n_active_planes,pixels = get_all_pixles_cvr(evt,hPixMatrix)
+        else:            n_active_planes,pixels = get_all_pixles_mc(evt,hPixMatrix)
     return n_active_planes,pixels

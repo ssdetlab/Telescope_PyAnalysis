@@ -16,9 +16,9 @@ class Hit:
         self.y = y
         self.q = q
         self.raw = raw
-        self.xmm = self.x*pix_x-chipX/2.
-        self.ymm = self.y*pix_y-chipY/2.
-        self.zmm = rdetectors[det][2]
+        self.xmm = self.x*cfg["pix_x"]-cfg["chipX"]/2.
+        self.ymm = self.y*cfg["pix_y"]-cfg["chipY"]/2.
+        self.zmm = cfg["rdetectors"][det][2]
     def __str__(self):
         return f"Pixel: x={self.x}, y={self.y}, raw={self.raw}, q={self.q}, r=({self.xmm,self.ymm,self.zmm}) [mm]"
 
@@ -27,11 +27,11 @@ class Cls:
         self.pixels = pixels
         self.n = len(pixels)
         self.x,self.y,self.dx,self.dy = self.build(pixels) 
-        self.dxmm = self.dx*pix_x
-        self.dymm = self.dy*pix_y
-        self.xmm  = self.x*pix_x-chipX/2.
-        self.ymm  = self.y*pix_y-chipY/2.
-        self.zmm  = rdetectors[det][2]
+        self.dxmm = self.dx*cfg["pix_x"]
+        self.dymm = self.dy*cfg["pix_y"]
+        self.xmm  = self.x*cfg["pix_x"]-cfg["chipX"]/2.
+        self.ymm  = self.y*cfg["pix_y"]-cfg["chipY"]/2.
+        self.zmm  = cfg["rdetectors"][det][2]
     def build(self,pixels):
         x = 0
         y = 0
@@ -58,8 +58,8 @@ class Cls:
 class MCparticle:
     def __init__(self,det,pdg,loc_start,loc_end):
         self.pdg = pdg
-        self.pos1 = ROOT.Math.XYZPoint( loc_start.X()-pix_x*npix_x/2., loc_start.Y()-pix_y*npix_y/2., rdetectors[det][2] )
-        self.pos2 = ROOT.Math.XYZPoint( loc_end.X()-pix_x*npix_x/2.,   loc_end.Y()-pix_y*npix_y/2.,   rdetectors[det][2] )
+        self.pos1 = ROOT.Math.XYZPoint( loc_start.X()-cfg["pix_x"]*cfg["npix_x"]/2., loc_start.Y()-cfg["pix_y"]*cfg["npix_y"]/2., cfg["rdetectors"][det][2] )
+        self.pos2 = ROOT.Math.XYZPoint( loc_end.X()-cfg["pix_x"]*cfg["npix_x"]/2.,   loc_end.Y()-cfg["pix_y"]*cfg["npix_y"]/2.,   cfg["rdetectors"][det][2] )
     def __str__(self):
         return f"MCparticle: pdg={self.pdg}, pos1=({self.pos1.X(),self.pos1.Y(),self.pos1.Z()}), pos2=({self.pos2.X(),self.loc_end.Y(),self.pos2.Z()})"
 
