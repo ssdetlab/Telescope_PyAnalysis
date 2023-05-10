@@ -125,6 +125,12 @@ class Config:
 
         self.add("detectors", self.getArrS('DETECTOR','detectors'))
         self.add("rdetectors", self.getMap2ArrF('DETECTOR','rdetectors'))
+        
+        detectorslist = list(self.map["detectors"])
+        rdetectorslist = detectorslist.reverse()
+        self.add("detectorslist", detectorslist)
+        self.add("rdetectorslist", detectorslist)
+        
         self.add("worldmargins", self.getF('DETECTOR','worldmargins'))
         self.add("zFirst", self.map["zVtx"]*(1-self.map["worldmargins"]))
         self.add("zLast",  self.map["rdetectors"]["ALPIDE_2"][2]*(1+self.map["worldmargins"]))

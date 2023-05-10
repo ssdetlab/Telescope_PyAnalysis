@@ -121,10 +121,11 @@ def analyze(tfilenamein,irange,evt_range,masked):
         
         ### truth particles
         mcparticles = get_truth_cvr(truth_tree,ievt) if(cfg["isCVRroot"] and truth_tree is not None) else {}
-        for det in cfg["detectors"]:
-            xtru,ytru,ztru = getTruPos(det,mcparticles,cfg["pdgIdMatch"])
-            histos["h_tru_3D"].Fill( xtru,ytru,ztru )
-            histos["h_tru_occ_2D_"+det].Fill( xtru,ytru )
+        if(cfg["isCVRroot"] and truth_tree is not None):
+            for det in cfg["detectors"]:
+                xtru,ytru,ztru = getTruPos(det,mcparticles,cfg["pdgIdMatch"])
+                histos["h_tru_3D"].Fill( xtru,ytru,ztru )
+                histos["h_tru_occ_2D_"+det].Fill( xtru,ytru )
 
         ### get the pixels
         n_active_planes, pixels = get_all_pixles(ttree,hPixMatix,cfg["isCVRroot"])
@@ -251,7 +252,8 @@ if __name__ == "__main__":
     
     # Parallelize the filling of the histograms
     # tfilenamein = "~/Downloads/data_telescope/eudaq/Apr24/source_vbb3_dv9/tree_vbb3_sr_dv9_vresetd147_clip60_run699.root"
-    tfilenamein = "~/Downloads/data_telescope/eudaq/Apr25/cosmics_sim_threshold120_cvr_root/out_structured_corry_TelescopeRunCosmics_telescope_cosmic_mu_0_120e.root"
+    # tfilenamein = "~/Downloads/data_telescope/eudaq/Apr25/cosmics_sim_threshold120_cvr_root/out_structured_corry_TelescopeRunCosmics_telescope_cosmic_mu_0_120e.root"
+    tfilenamein = cfg["inputfile"]
     tfnoisename = tfilenamein.replace(".root","_noise.root")
     masked = GetNoiseMask(tfnoisename)
     
@@ -269,6 +271,7 @@ if __name__ == "__main__":
     for irng,rng in enumerate(ranges):
         print("Submitting range["+str(irng)+"]:",rng[0],"...",rng[-1])
         pool.apply_async(analyze, args=(tfilenamein,irng,rng,masked), callback=collect_histos, error_callback=collect_errors)
+        # histos = analyze(tfilenamein,irng,rng,masked)
     
     ### Wait for all the workers to finish
     pool.close()

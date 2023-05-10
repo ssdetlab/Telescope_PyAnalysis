@@ -12,4 +12,5 @@ Setup:
 - change config file as needed
 
 Run:
-- e.g. `python3 multiproc_analyzer.py -conf conf/config_cosmics_sim_thr120e.txt`
+- `python3 multiproc_analyzer.py -conf conf/config_cosmics_sim_thr120e.txt`
+- `python3 serial_analyzer.py -conf conf/config_source_data_dv9.txt`

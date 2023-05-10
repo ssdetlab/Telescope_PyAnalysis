@@ -1,6 +1,6 @@
 [RUN]
 isMC          = 1
-isCVMFS       = 1
+isCVMFS       = 0
 doVtx         = 0
 runtype       = cosmics
 pdgIdMatch    = 13
