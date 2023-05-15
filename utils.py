@@ -52,6 +52,19 @@ def r1r2(direction, centroid):
     return r1,r2
 
 
+def rotate(theta,x,y):
+    xr = x*math.cos(theta)-y*math.sin(theta)
+    yr = x*math.sin(theta)+y*math.cos(theta)
+    return xr,yr
+
+
+def align(det,x,y):
+    x,y = rotate(-1.*cfg["misalignment"][det]["theta"],x,y)
+    x = x+cfg["misalignment"][det]["dx"]
+    y = y+cfg["misalignment"][det]["dy"]
+    return x,y
+
+
 def res_track2cluster(detector, points, direction, centroid):
     r1,r2 = r1r2(direction, centroid)
     x  = points[:,0]#+offsets_x[detector]
@@ -115,3 +128,5 @@ def InitCutflow():
     cutflow = {}
     for cut in cfg["cuts"]: cutflow.update({cut:0})
     return cutflow
+
+

@@ -8,6 +8,8 @@ from ROOT import *
 
 import config
 from config import *
+import utils
+from utils import *
 
 
 class Hit:
@@ -29,8 +31,9 @@ class Cls:
         self.x,self.y,self.dx,self.dy = self.build(pixels) 
         self.dxmm = self.dx*cfg["pix_x"]
         self.dymm = self.dy*cfg["pix_y"]
-        self.xmm  = self.x*cfg["pix_x"]-cfg["chipX"]/2.
-        self.ymm  = self.y*cfg["pix_y"]-cfg["chipY"]/2.
+        self.xmm0 = self.x*cfg["pix_x"]-cfg["chipX"]/2. ### original x (with misalignment)
+        self.ymm0 = self.y*cfg["pix_y"]-cfg["chipY"]/2. ### original y (with misalignment)
+        self.xmm,self.ymm = align(det,self.xmm0,self.ymm0) ### aligned x,y
         self.zmm  = cfg["rdetectors"][det][2]
     def build(self,pixels):
         x = 0
@@ -54,6 +57,7 @@ class Cls:
     def __str__(self):
         # for p in self.pixels: print(p)
         return f"Cluster: x={self.x}, y={self.y}, r=({self.xmm,self.ymm,self.zmm}) [mm], size={self.n}"
+
 
 class MCparticle:
     def __init__(self,det,pdg,loc_start,loc_end):

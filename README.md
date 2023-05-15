@@ -11,6 +11,12 @@ Setup:
 - put data files somewhere with enough space...
 - change config file as needed
 
-Run:
+Run analysis:
 - `python3 multiproc_analyzer.py -conf conf/config_cosmics_sim_thr120e.txt`
 - `python3 serial_analyzer.py -conf conf/config_source_data_dv9.txt`
+
+Run alignment with cosmics:
+- step 1: `python3 multiproc_analyzer.py -conf conf/config_cosmics_sim_thr120e.txt`
+- step 2: `python3 alignment_analyzer.py -conf conf/config_cosmics_sim_thr120e.txt`
+- step 3: put the resulting misalinment values in the corresponding config file
+- setp 4: repeat step 1 and then compare the residuals and the chi2 histograms

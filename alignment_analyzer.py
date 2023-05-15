@@ -32,6 +32,7 @@ from config import *
 ### must be called here (first) and only once!
 init_config(configfile,False)
 
+
 import utils
 from utils import *
 import svd_fit
@@ -84,12 +85,6 @@ def getfiles(tfilenamein):
     print("pattern:",pattern)
     files = getfileslist(directory,pattern,".pkl")
     return files
-
-
-def rotate(theta,x,y):
-    xr = x*math.cos(theta)-y*math.sin(theta)
-    yr = x*math.sin(theta)+y*math.cos(theta)
-    return xr,yr
 
 
 def fitSVD(event,aligndet,dx,dy,theta=999):
@@ -195,7 +190,7 @@ if __name__ == "__main__":
         suff = str(fpkl).split("_")[-1].replace(".pkl","")
         print("Sending job for",fpkl)
         pool.apply_async(analyze, args=(fpkl,aligndet,suff), callback=collect_histos, error_callback=collect_errors)
-    
+        
     ### Wait for all the workers to finish
     pool.close()
     pool.join()
