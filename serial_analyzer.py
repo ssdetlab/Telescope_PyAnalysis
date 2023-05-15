@@ -115,9 +115,9 @@ def RunNoiseScan(tfilename,tfnoisename):
     
     nprocevents = 0
     for evt in ttree:
-        if(nmax2process>0 and nprocevents>nmax2process): break
+        if(cfg["nmax2process"]>0 and nprocevents>cfg["nmax2process"]): break
         ### get the pixels
-        n_active_planes,pixels = get_all_pixles(evt,h2D_noise,isCVRroot)
+        n_active_planes,pixels = get_all_pixles(evt,h2D_noise,cfg["isCVRroot"])
         for det in cfg["detectors"]:
             for pix in pixels[det]:
                 i = h2D_noise[det].FindBin(pix.x,pix.y)

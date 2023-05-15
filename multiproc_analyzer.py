@@ -22,8 +22,10 @@ import pickle
 import argparse
 parser = argparse.ArgumentParser(description='serial_analyzer.py...')
 parser.add_argument('-conf', metavar='config file', required=True,  help='full path to config file')
+parser.add_argument('-dbg',  metavar='debug with single proc?', required=False,  help='debug with single proc?[0/1]')
 argus = parser.parse_args()
 configfile = argus.conf
+debug = True if(argus.dbg is not None and argus.dbg=="1") else False
 
 import config
 from config import *
@@ -74,6 +76,7 @@ gSystem.Load('libCorryvreckanObjects.dylib')
 ###############################################################
 ###############################################################
 
+### defined below as global
 allhistos = {}
 
 
@@ -93,6 +96,10 @@ def analyze(tfilenamein,irange,evt_range,masked):
     
     ### important
     sufx = "_"+str(irange)
+    
+    ### open the pickle:
+    picklename = tfilenamein.replace(".root","_"+str(irange)+".pkl")
+    fpickle = open(os.path.expanduser(picklename),"wb")
     
     ### histos
     tfoname = tfilenamein.replace(".root","_multiprocess_histograms"+sufx+".root")
@@ -114,6 +121,7 @@ def analyze(tfilenamein,irange,evt_range,masked):
     ievt_start = evt_range[0]
     ievt_end   = evt_range[-1]
     
+    eventslist = []
     for ievt in range(ievt_start,ievt_end+1):
         ttree.GetEntry(ievt)
         histos["h_events"].Fill(0.5)
@@ -216,9 +224,11 @@ def analyze(tfilenamein,irange,evt_range,masked):
                 histos["h_ntrks_"+strcsize+"_vs_trupos_"+det].Fill(posx,posy)
                 
         ### fill the event data and add to events
-        ev = Event(pixels_save,clusters,track,mcparticles)
+        eventslist.append( Event(pixels_save,clusters,track,mcparticles) )
         
     ### end
+    pickle.dump(eventslist, fpickle, protocol=pickle.HIGHEST_PROTOCOL) ### dump to pickle
+    fpickle.close()
     print("Worker of",irange,"is done!")
     lock.release()
     return histos
@@ -231,7 +241,7 @@ def collect_errors(error):
 
 def collect_histos(histos):
     ### https://www.machinelearningplus.com/python/parallel-processing-python/
-    global allhistos
+    global allhistos ### defined above!!!
     for name,hist in allhistos.items():
         hist.Add(histos[name])
 
@@ -250,9 +260,7 @@ if __name__ == "__main__":
     # Create a pool of workers
     pool = mp.Pool(nCPUs)
     
-    # Parallelize the filling of the histograms
-    # tfilenamein = "~/Downloads/data_telescope/eudaq/Apr24/source_vbb3_dv9/tree_vbb3_sr_dv9_vresetd147_clip60_run699.root"
-    # tfilenamein = "~/Downloads/data_telescope/eudaq/Apr25/cosmics_sim_threshold120_cvr_root/out_structured_corry_TelescopeRunCosmics_telescope_cosmic_mu_0_120e.root"
+    # Parallelize the analysis
     tfilenamein = cfg["inputfile"]
     tfnoisename = tfilenamein.replace(".root","_noise.root")
     masked = GetNoiseMask(tfnoisename)
@@ -264,14 +272,17 @@ if __name__ == "__main__":
     allhistos = book_histos(tfo)
     
     ### start the loop
-    nevents = cfg["nmax2process"] if(cfg["nmax2process"]>0) else ttree.GetEntries()
+    tfile0,ttree0 = GetTree(tfilenamein)
+    nevents = cfg["nmax2process"] if(cfg["nmax2process"]>0) else ttree0.GetEntries()
     bundle = nCPUs
     fullrange = range(nevents)
     ranges = np.array_split(fullrange,bundle)
     for irng,rng in enumerate(ranges):
         print("Submitting range["+str(irng)+"]:",rng[0],"...",rng[-1])
-        pool.apply_async(analyze, args=(tfilenamein,irng,rng,masked), callback=collect_histos, error_callback=collect_errors)
-        # histos = analyze(tfilenamein,irng,rng,masked)
+        if(debug):
+            histos = analyze(tfilenamein,irng,rng,masked)
+        else:
+            pool.apply_async(analyze, args=(tfilenamein,irng,rng,masked), callback=collect_histos, error_callback=collect_errors)
     
     ### Wait for all the workers to finish
     pool.close()

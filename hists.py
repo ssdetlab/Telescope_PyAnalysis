@@ -36,7 +36,7 @@ if(cfg["runtype"]=="source"):
     absChi2 *= 100
 
 ### book histos
-def book_histos(tfo=None):
+def book_histos(tfo):
     histos = {}
     
     tfo.cd()
@@ -144,6 +144,24 @@ def book_histos(tfo=None):
         hist.SetLineColor(ROOT.kBlack)
         hist.Sumw2()
     
+    return histos
+
+
+def book_alignment_histos(tfo):
+    histos = {}
+    tfo.cd()
+    nxbins = 60
+    nybins = 60
+    ntbins = 60
+    xmin = -0.25
+    xmax = +0.10
+    ymin = -0.10
+    ymax = +0.10
+    tmin = -np.pi/15.
+    tmax = +np.pi/15.
+    histos.update( {"hChi2dof":TH1D("hChi2dof",";Original #chi^{2}/N_{DoF};Tracks",100,0,10)} )
+    histos.update( {"hSVDchi2dof":TH1D("hSVDchi2dof",";SVD #chi^{2}/N_{DoF};Tracks",100,0,10)} )
+    histos.update( {"hTransform":TH3D("hTransform",";x [mm];y [mm];#theta",nxbins,xmin,xmax, nybins,ymin,ymax, ntbins,tmin,tmax)})
     return histos
 
 

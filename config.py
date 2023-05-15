@@ -13,6 +13,7 @@ import configparser
 ### should be called once from main
 def init_config(fname,show):
     ConfigCls = Config(fname,show)
+    # https://stackoverflow.com/questions/13034496/using-global-variables-between-files
     global cfg
     cfg = ConfigCls.map
 

@@ -39,6 +39,7 @@ def getTruPos(det,mcparticles,pdg):
     xtru = -99999
     ytru = -99999
     ztru = -99999
+    if(len(mcparticles)==0): return xtru,ytru,ztru
     for prt in mcparticles[det]:
         if(abs(prt.pdg)!=pdg): continue ### take only the target pdgId
         xtru = prt.pos1.X()
