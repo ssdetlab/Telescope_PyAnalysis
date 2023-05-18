@@ -17,6 +17,6 @@ Run analysis:
 
 Run alignment with cosmics:
 - step 1: `python3 multiproc_analyzer.py -conf conf/config_cosmics_sim_thr120e.txt`
-- step 2: `python3 alignment_analyzer.py -conf conf/config_cosmics_sim_thr120e.txt`
-- step 3: put the resulting misalinment values in the corresponding config file
+- step 2: `python3 alignment_analyzer.py -conf conf/config_cosmics_sim_thr120e.txt -det ALPIDE_1`
+- step 3: put the resulting misalinment values in the corresponding config file for the specific detector
 - setp 4: repeat step 1 and then compare the residuals and the chi2 histograms

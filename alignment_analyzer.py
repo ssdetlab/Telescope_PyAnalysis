@@ -24,8 +24,10 @@ import ctypes
 import argparse
 parser = argparse.ArgumentParser(description='serial_analyzer.py...')
 parser.add_argument('-conf', metavar='config file', required=True,  help='full path to config file')
+parser.add_argument('-det', metavar='detector to align', required=True,  help='detector to align')
 argus = parser.parse_args()
 configfile = argus.conf
+aligndet = argus.det
 
 import config
 from config import *
@@ -171,6 +173,9 @@ if __name__ == "__main__":
     
     # print config once
     show_config()
+    if(aligndet not in cfg["detectors"]):
+        print("Unknown detector:",aligndet," --> quitting")
+        quit()
     
     # Create a pool of workers
     pool = mp.Pool(nCPUs)
@@ -179,12 +184,10 @@ if __name__ == "__main__":
     files = getfiles(tfilenamein)
     
     ### histos
-    tfoname = tfilenamein.replace(".root","_alignment.root")
+    tfoname = tfilenamein.replace(".root","_alignment_"+aligndet+".root")
     tfo = TFile(tfoname,"RECREATE")
     tfo.cd()
     allhistos = book_alignment_histos(tfo)
-    
-    aligndet = "ALPIDE_1"
     
     for fpkl in files:
         suff = str(fpkl).split("_")[-1].replace(".pkl","")
@@ -195,27 +198,29 @@ if __name__ == "__main__":
     pool.close()
     pool.join()
 
-    # print("Processed events:",nevents)
-    
-    # histos["hTransform"].Scale(1./nevents)
-    bx = ctypes.c_int(-1)
-    by = ctypes.c_int(-1)
-    bz = ctypes.c_int(-1)
-    allhistos["hTransform"].GetMinimumBin(bx,by,bz)
-    x = allhistos["hTransform"].GetXaxis().GetBinCenter(bx.value)
-    y = allhistos["hTransform"].GetYaxis().GetBinCenter(by.value)
-    t = allhistos["hTransform"].GetZaxis().GetBinCenter(bz.value)
-    print("3D misalignment in x is:",x,"[mm]")
-    print("3D misalignment in y is:",y,"[mm]")
-    print("3D misalignment in theta is:",t)
-    print("")
-    
     hXY = allhistos["hTransform"].Project3D("yx")
-    hXZ = allhistos["hTransform"].Project3D("zx")
-    hYZ = allhistos["hTransform"].Project3D("zy")
+    hXT = allhistos["hTransform"].Project3D("zx")
+    hYT = allhistos["hTransform"].Project3D("zy")
     hX = allhistos["hTransform"].Project3D("x")
     hY = allhistos["hTransform"].Project3D("y")
-    hZ = allhistos["hTransform"].Project3D("z")
+    hT = allhistos["hTransform"].Project3D("z")
+    
+    hXT.SetName("hTransform_tx")
+    hYT.SetName("hTransform_ty")
+    hT.SetName("hTransform_t")
+
+    bx = ctypes.c_int(-1)
+    by = ctypes.c_int(-1)
+    bt = ctypes.c_int(-1)
+    allhistos["hTransform"].GetMinimumBin(bx,by,bt)
+    x = allhistos["hTransform"].GetXaxis().GetBinCenter(bx.value)
+    y = allhistos["hTransform"].GetYaxis().GetBinCenter(by.value)
+    t = allhistos["hTransform"].GetZaxis().GetBinCenter(bt.value)
+    print("3D misalignment for "+aligndet+" in x is:",x,"[mm] (or in 1D:",hX.GetBinCenter(hX.GetMinimumBin()),")")
+    print("3D misalignment for "+aligndet+" in y is:",y,"[mm] (or in 1D:",hY.GetBinCenter(hY.GetMinimumBin()),")")
+    print("3D misalignment for "+aligndet+" in theta is:",t," (or in 1D:",hT.GetBinCenter(hT.GetMinimumBin()),")")
+    print("")
+    
 
     tfo.Write()
     tfo.Close()

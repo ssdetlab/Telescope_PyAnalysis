@@ -273,7 +273,7 @@ if __name__ == "__main__":
     
     ### start the loop
     tfile0,ttree0 = GetTree(tfilenamein)
-    nevents = cfg["nmax2process"] if(cfg["nmax2process"]>0) else ttree0.GetEntries()
+    nevents = cfg["nmax2processmp"] if(cfg["nmax2processmp"]>0) else ttree0.GetEntries()
     bundle = nCPUs
     fullrange = range(nevents)
     ranges = np.array_split(fullrange,bundle)

@@ -108,6 +108,7 @@ class Config:
         self.add("runtype", self.getS('RUN','runtype'))
         self.add("pdgIdMatch", self.getI('RUN','pdgIdMatch'))
         self.add("nmax2process", self.getI('RUN','nmax2process'))
+        self.add("nmax2processmp", self.getI('RUN','nmax2processmp'))
         self.add("doplot", self.getB('RUN','doplot'))
         self.add("doDiagnostics", self.getB('RUN','doDiagnostics'))
         self.add("doNoiseScan", self.getB('RUN','doNoiseScan'))

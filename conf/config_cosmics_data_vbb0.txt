@@ -1,16 +1,17 @@
 [RUN]
-isMC          = 0
-isCVMFS       = 0
-doVtx         = 0
-runtype       = cosmics
-pdgIdMatch    = 13
-nmax2process  = 800
-doplot        = 0
-doDiagnostics = 0
-doNoiseScan   = 0
-isCVRroot     = 0
-nprintout     = 20
-inputfile     = ~/Downloads/data_telescope/eudaq/May18/cosmics_vbb0_newtele_run723/tree_cosmics_vbb0_newtele_run723.root
+isMC           = 0
+isCVMFS        = 0
+doVtx          = 0
+runtype        = cosmics
+pdgIdMatch     = 13
+nmax2process   = 800
+nmax2processmp = 800
+doplot         = 0
+doDiagnostics  = 0
+doNoiseScan    = 0
+isCVRroot      = 0
+nprintout      = 20
+inputfile      = ~/Downloads/data_telescope/eudaq/May18/cosmics_vbb0_newtele_run723/tree_cosmics_vbb0_newtele_run723.root
 
 
 [CHIP]
