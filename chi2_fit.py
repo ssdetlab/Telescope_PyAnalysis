@@ -95,8 +95,8 @@ def plot_3d_chi2err(evt,points,params,show=False):
     y = points[1]
     z = points[2]
     # Plot the points and the fitted line
-    x0,y0,z0 = line(zFirst, params)
-    x1,y1,z1 = line(zLast,  params)
+    x0,y0,z0 = line(cfg["zFirst"], params)
+    x1,y1,z1 = line(cfg["zLast"],  params)
     #TODO: need to check this:
     xm,ym,zm = line((cfg["zLast"]-cfg["zFirst"])/2., params) #TODO
     centroid  = [xm,ym,zm]                     #TODO

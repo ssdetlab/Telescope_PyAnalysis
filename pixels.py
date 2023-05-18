@@ -32,7 +32,7 @@ def get_all_pixles_eudaq(evt,hPixMatrix):
                 raws[detector].append(raw)
                 pixels[detector].append( Hit(detector,ix,iy,raw) )
     return n_active_planes,pixels
-    
+
 
 def get_all_pixles_mc(evt,hPixMatrix):
     pixels = {}
@@ -40,31 +40,48 @@ def get_all_pixles_mc(evt,hPixMatrix):
     for det in cfg["detectors"]:
         pixels.update({det:[]})
         raws.update({det:[]})
-    n_active_planes = (evt.ALPIDE_0_pix_col.size()>0) + (evt.ALPIDE_1_pix_col.size()>0) + (evt.ALPIDE_2_pix_col.size()>0)
-    for i in range(evt.ALPIDE_0_pix_col.size()):
-        det = "ALPIDE_0"
-        ix = evt.ALPIDE_0_pix_col[i]
-        iy = evt.ALPIDE_0_pix_row[i]
-        raw = hPixMatrix[det].FindBin(ix,iy)
-        if(raw not in raws[det]):
-            raws[det].append(raw)
-            pixels[det].append( Hit(det,ix,iy,raw) )
-    for i in range(evt.ALPIDE_1_pix_col.size()):
-        det = "ALPIDE_1"
-        ix = evt.ALPIDE_0_pix_col[i]
-        iy = evt.ALPIDE_0_pix_row[i]
-        raw = hPixMatrix[det].FindBin(ix,iy)
-        if(raw not in raws[det]):
-            raws[det].append(raw)
-            pixels[det].append( Hit(det,ix,iy,raw) )
-    for i in range(evt.ALPIDE_2_pix_col.size()):
-        det = "ALPIDE_2"
-        ix = evt.ALPIDE_0_pix_col[i]
-        iy = evt.ALPIDE_0_pix_row[i]
-        raw = hPixMatrix[det].FindBin(ix,iy)
-        if(raw not in raws[det]):
-            raws[det].append(raw)
-            pixels[det].append( Hit(det,ix,iy,raw) )
+    ndet = len(cfg["detectors"])
+    n_active_planes = -1
+    if  (ndet==4): n_active_planes = (evt.ALPIDE_0_pix_col.size()>0) + (evt.ALPIDE_1_pix_col.size()>0) + (evt.ALPIDE_2_pix_col.size()>0) + (evt.ALPIDE_3_pix_col.size()>0)
+    elif(ndet==3): n_active_planes = (evt.ALPIDE_0_pix_col.size()>0) + (evt.ALPIDE_1_pix_col.size()>0) + (evt.ALPIDE_2_pix_col.size()>0)
+    elif(ndet==2): n_active_planes = (evt.ALPIDE_0_pix_col.size()>0) + (evt.ALPIDE_1_pix_col.size()>0)
+    elif(ndet==1): n_active_planes = (evt.ALPIDE_0_pix_col.size()>0)
+    if(ndet>0):
+        for i in range(evt.ALPIDE_0_pix_col.size()):
+            det = "ALPIDE_0"
+            ix = evt.ALPIDE_0_pix_col[i]
+            iy = evt.ALPIDE_0_pix_row[i]
+            raw = hPixMatrix[det].FindBin(ix,iy)
+            if(raw not in raws[det]):
+                raws[det].append(raw)
+                pixels[det].append( Hit(det,ix,iy,raw) )
+    if(ndet>1):
+        for i in range(evt.ALPIDE_1_pix_col.size()):
+            det = "ALPIDE_1"
+            ix = evt.ALPIDE_1_pix_col[i]
+            iy = evt.ALPIDE_1_pix_row[i]
+            raw = hPixMatrix[det].FindBin(ix,iy)
+            if(raw not in raws[det]):
+                raws[det].append(raw)
+                pixels[det].append( Hit(det,ix,iy,raw) )
+    if(ndet>2):
+        for i in range(evt.ALPIDE_2_pix_col.size()):
+            det = "ALPIDE_2"
+            ix = evt.ALPIDE_1_pix_col[i]
+            iy = evt.ALPIDE_1_pix_row[i]
+            raw = hPixMatrix[det].FindBin(ix,iy)
+            if(raw not in raws[det]):
+                raws[det].append(raw)
+                pixels[det].append( Hit(det,ix,iy,raw) )
+    if(ndet>3):
+        for i in range(evt.ALPIDE_3_pix_col.size()):
+            det = "ALPIDE_3"
+            ix = evt.ALPIDE_3_pix_col[i]
+            iy = evt.ALPIDE_3_pix_row[i]
+            raw = hPixMatrix[det].FindBin(ix,iy)
+            if(raw not in raws[det]):
+                raws[det].append(raw)
+                pixels[det].append( Hit(det,ix,iy,raw) )
     return n_active_planes,pixels
 
 
@@ -74,34 +91,52 @@ def get_all_pixles_cvr(evt,hPixMatrix):
     for det in cfg["detectors"]:
         pixels.update({det:[]})
         raws.update({det:[]})
-    n_active_planes = (evt.ALPIDE_0.size()>0) + (evt.ALPIDE_1.size()>0) + (evt.ALPIDE_2.size()>0)
-    for i in range(evt.ALPIDE_0.size()):
-        det = "ALPIDE_0"
-        ix = evt.ALPIDE_0[i].column()
-        iy = evt.ALPIDE_0[i].row()
-        q  = evt.ALPIDE_0[i].charge()
-        raw = hPixMatrix[det].FindBin(ix,iy)
-        if(raw not in raws[det]):
-            raws[det].append(raw)
-            pixels[det].append( Hit(det,ix,iy,raw,q) )
-    for i in range(evt.ALPIDE_1.size()):
-        det = "ALPIDE_1"
-        ix = evt.ALPIDE_1[i].column()
-        iy = evt.ALPIDE_1[i].row()
-        q  = evt.ALPIDE_1[i].charge()
-        raw = hPixMatrix[det].FindBin(ix,iy)
-        if(raw not in raws[det]):
-            raws[det].append(raw)
-            pixels[det].append( Hit(det,ix,iy,raw,q) )
-    for i in range(evt.ALPIDE_2.size()):
-        det = "ALPIDE_2"
-        ix = evt.ALPIDE_2[i].column()
-        iy = evt.ALPIDE_2[i].row()
-        q  = evt.ALPIDE_2[i].charge()
-        raw = hPixMatrix[det].FindBin(ix,iy)
-        if(raw not in raws[det]):
-            raws[det].append(raw)
-            pixels[det].append( Hit(det,ix,iy,raw,q) )
+    ndet = len(cfg["detectors"])
+    n_active_planes = -1
+    if(ndet==4): n_active_planes = (evt.ALPIDE_0.size()>0) + (evt.ALPIDE_1.size()>0) + (evt.ALPIDE_2.size()>0) + (evt.ALPIDE_3.size()>0)
+    if(ndet==3): n_active_planes = (evt.ALPIDE_0.size()>0) + (evt.ALPIDE_1.size()>0) + (evt.ALPIDE_2.size()>0)
+    if(ndet==2): n_active_planes = (evt.ALPIDE_0.size()>0) + (evt.ALPIDE_1.size()>0)
+    if(ndet==1): n_active_planes = (evt.ALPIDE_0.size()>0)
+    if(ndet>0):
+        for i in range(evt.ALPIDE_0.size()):
+            det = "ALPIDE_0"
+            ix = evt.ALPIDE_0[i].column()
+            iy = evt.ALPIDE_0[i].row()
+            q  = evt.ALPIDE_0[i].charge()
+            raw = hPixMatrix[det].FindBin(ix,iy)
+            if(raw not in raws[det]):
+                raws[det].append(raw)
+                pixels[det].append( Hit(det,ix,iy,raw,q) )
+    if(ndet>1):
+        for i in range(evt.ALPIDE_1.size()):
+            det = "ALPIDE_1"
+            ix = evt.ALPIDE_1[i].column()
+            iy = evt.ALPIDE_1[i].row()
+            q  = evt.ALPIDE_1[i].charge()
+            raw = hPixMatrix[det].FindBin(ix,iy)
+            if(raw not in raws[det]):
+                raws[det].append(raw)
+                pixels[det].append( Hit(det,ix,iy,raw,q) )
+    if(ndet>2):
+        for i in range(evt.ALPIDE_2.size()):
+            det = "ALPIDE_2"
+            ix = evt.ALPIDE_2[i].column()
+            iy = evt.ALPIDE_2[i].row()
+            q  = evt.ALPIDE_2[i].charge()
+            raw = hPixMatrix[det].FindBin(ix,iy)
+            if(raw not in raws[det]):
+                raws[det].append(raw)
+                pixels[det].append( Hit(det,ix,iy,raw,q) )
+    if(ndet>3):
+        for i in range(evt.ALPIDE_3.size()):
+            det = "ALPIDE_3"
+            ix = evt.ALPIDE_3[i].column()
+            iy = evt.ALPIDE_3[i].row()
+            q  = evt.ALPIDE_3[i].charge()
+            raw = hPixMatrix[det].FindBin(ix,iy)
+            if(raw not in raws[det]):
+                raws[det].append(raw)
+                pixels[det].append( Hit(det,ix,iy,raw,q) )
     return n_active_planes,pixels
 
 

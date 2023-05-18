@@ -142,14 +142,22 @@ class Config:
         self.add("rdetectors", self.getMap2ArrF('DETECTOR','rdetectors'))
         self.add("misalignment", self.getMap2MapF('DETECTOR','misalignment'))
         
+        firstdet = self.map["detectors"][0]
+        lastdet  = self.map["detectors"][-1]
+        
         detectorslist = list(self.map["detectors"])
         rdetectorslist = detectorslist.reverse()
         self.add("detectorslist", detectorslist)
         self.add("rdetectorslist", detectorslist)
         
         self.add("worldmargins", self.getF('DETECTOR','worldmargins'))
-        self.add("zFirst", self.map["zVtx"]*(1-self.map["worldmargins"]))
-        self.add("zLast",  self.map["rdetectors"]["ALPIDE_2"][2]*(1+self.map["worldmargins"]))
+        # self.add("zFirst", self.map["zVtx"]*(1-self.map["worldmargins"]))
+        # self.add("zLast", self.map["rdetectors"]["ALPIDE_2"][2]*(1+self.map["worldmargins"]))
+        if(self.map["doVtx"]):
+            self.add("zFirst", self.map["zVtx"]*(1-self.map["worldmargins"]))
+        else:
+            self.add("zFirst", self.map["rdetectors"][firstdet][2]*(1-self.map["worldmargins"]))
+        self.add("zLast", self.map["rdetectors"][lastdet][2]*(1+self.map["worldmargins"]))
         self.add("worldscales", self.getMap2ArrF('DETECTOR','worldscales'))
         self.add("worldcenter", self.getArrF('DETECTOR','worldcenter'))
         self.add("worldradius",  self.getF('DETECTOR','worldradius'))

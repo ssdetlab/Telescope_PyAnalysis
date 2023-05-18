@@ -71,7 +71,7 @@ def res_track2cluster(detector, points, direction, centroid):
     y  = points[:,1]#+offsets_y[detector]
     zpoints = points[:,2]
     i  = cfg["detectors"].index(detector)
-    if(len(points)==4): i = i+1 ### when the vertex is the first point in the points array
+    if(len(points)==len(cfg["detectors"])+1): i = i+1 ### when the vertex is the first point in the points array
     z  = zpoints[i]
     xonline,yonline = xyofz(r1,r2,z)
     dx = xonline-x[i]
@@ -84,7 +84,7 @@ def res_track2truth(detector, mcparticles, pdgIdMatch, points, direction, centro
     zpoints = points[:,2]
     i = cfg["detectors"].index(detector)
     j = i
-    if(len(points)==4): i = i+1 ### when the vertex is the first point in the points array
+    if(len(points)==len(cfg["detectors"])+1): i = i+1 ### when the vertex is the first point in the points array
     z = zpoints[i]
     trupos = None
     for prt in mcparticles[detector]:
