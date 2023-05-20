@@ -187,6 +187,7 @@ def analyze(tfilenamein,irange,evt_range,masked):
         if(not success): continue
         histos["h_cutflow"].Fill( cfg["cuts"].index("Fitted") )
         histos["h_3Dchi2err"].Fill(chi2ndof)
+        histos["h_3Dchi2err_full"].Fill(chi2ndof)
         histos["h_3Dchi2err_zoom"].Fill(chi2ndof)
         histos["h_Chi2_phi"].Fill(track.phi)
         histos["h_Chi2_theta"].Fill(track.theta)

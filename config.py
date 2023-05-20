@@ -18,7 +18,8 @@ def init_config(fname,show):
     cfg = ConfigCls.map
 
 def show_config():
-    print("Configuration map:",cfg)
+    print("Configuration map:")
+    for key,val in cfg.items(): print(f"{key}: {val}")
     print("")
 
 ### config file looks like that:
@@ -142,6 +143,8 @@ class Config:
         self.add("detectors", self.getArrS('DETECTOR','detectors'))
         self.add("rdetectors", self.getMap2ArrF('DETECTOR','rdetectors'))
         self.add("misalignment", self.getMap2MapF('DETECTOR','misalignment'))
+        self.add("maxChi2align", self.getF('DETECTOR','maxchi2align'))
+        self.add("alignmentbins", self.getMap2MapF('DETECTOR','alignmentbins'))
         
         firstdet = self.map["detectors"][0]
         lastdet  = self.map["detectors"][-1]
@@ -182,7 +185,9 @@ class Config:
         self.add("cuts", self.getArrS('CUTS','cuts'))
     
         if(doprint):
-            print("Configuration map:",self.map)
+            print("Configuration map:")
+            for key,val in self.map.items():
+                print(f"{key}: {val}")
             print("")
 
     def __str__(self):

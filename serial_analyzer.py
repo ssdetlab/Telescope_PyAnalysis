@@ -281,6 +281,7 @@ def Run(tfilename,tfnoisename,tfo,histos):
             plot_3d_chi2err(norigevents,points_Chi2,params_Chi2,cfg["doplot"])
             ### fill some histos
             histos["h_3Dchi2err"].Fill(chi2ndof_Chi2)
+            histos["h_3Dchi2err_full"].Fill(chi2ndof_Chi2)
             histos["h_3Dchi2err_zoom"].Fill(chi2ndof_Chi2)
             histos["h_cutflow"].Fill( cfg["cuts"].index("Fitted") )
             

@@ -51,6 +51,7 @@ def book_histos(tfo):
         histos["h_cutflow"].GetXaxis().SetBinLabel(b,cfg["cuts"][b-1])
     
     histos.update( { "h_3Dchi2err"      : TH1D("h_3Dchi2err",";3D-#chi^{2} fit w/err: #chi^{2}/N_{dof};Tracks",200,0,absChi2) } )
+    histos.update( { "h_3Dchi2err_full" : TH1D("h_3Dchi2err_full",";3D-#chi^{2} fit w/err: #chi^{2}/N_{dof};Tracks",200,0,absChi2*10) } )
     histos.update( { "h_3Dchi2err_zoom" : TH1D("h_3Dchi2err_zoom",";3D-#chi^{2} fit w/err: #chi^{2}/N_{dof};Tracks",200,0,absChi2/5.) } )
     histos.update( { "h_npix"           : TH1D("h_npix",";N_{pixels}/detector;Events",30,0,30) } )
 
@@ -150,18 +151,11 @@ def book_histos(tfo):
 def book_alignment_histos(tfo):
     histos = {}
     tfo.cd()
-    nxbins = 50
-    nybins = 50
-    ntbins = 50
-    xmin = -0.3
-    xmax = +0.3
-    ymin = -0.3
-    ymax = +0.3
-    tmin = -np.pi/15.
-    tmax = +np.pi/15.
     histos.update( {"hChi2dof":TH1D("hChi2dof",";Original #chi^{2}/N_{DoF};Tracks",100,0,10)} )
     histos.update( {"hSVDchi2dof":TH1D("hSVDchi2dof",";SVD #chi^{2}/N_{DoF};Tracks",100,0,10)} )
-    histos.update( {"hTransform":TH3D("hTransform",";x [mm];y [mm];#theta",nxbins,xmin,xmax, nybins,ymin,ymax, ntbins,tmin,tmax)})
+    histos.update( {"hTransform":TH3D("hTransform",";x [mm];y [mm];#theta",int(cfg["alignmentbins"]["dx"]["bins"]),cfg["alignmentbins"]["dx"]["min"],cfg["alignmentbins"]["dx"]["max"],
+                                                                           int(cfg["alignmentbins"]["dy"]["bins"]),cfg["alignmentbins"]["dy"]["min"],cfg["alignmentbins"]["dy"]["max"],
+                                                                           int(cfg["alignmentbins"]["theta"]["bins"]),cfg["alignmentbins"]["theta"]["min"],cfg["alignmentbins"]["theta"]["max"])})
     return histos
 
 

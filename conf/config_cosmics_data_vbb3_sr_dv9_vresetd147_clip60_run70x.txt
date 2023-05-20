@@ -48,6 +48,8 @@ nSigma   = 25
 detectors    = ALPIDE_0 ALPIDE_1 ALPIDE_2
 rdetectors   = ALPIDE_0:0,0,29.0 ALPIDE_1:0,0,54.8 ALPIDE_2:0,0,80.6
 misalignment = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-0.06625,dy=-0.00167,theta=0.00349 ALPIDE_2:dx=0,dy=0,theta=0
+maxchi2align  = 400
+alignmentbins = dx:bins=60,min=-0.4,max=+0.1 dy:bins=60,min=-0.3,max=+0.1 theta:bins=60,min=-0.1,max=+0.1
 worldmargins = 0.1
 worldscales  = x:1.2,1.2 y:1.5,1.5 z:1,1
 worldcenter  = 0,0,54.8

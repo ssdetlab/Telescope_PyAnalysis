@@ -137,7 +137,7 @@ def analyze(fpkl,aligndet,suff):
             chi2dof = fitSVD(event,aligndet,0,0,999)
             histos["hSVDchi2dof"].Fill(chi2dof)
             histos["hChi2dof"].Fill(origchi2dof)
-            if(chi2dof>5.): continue
+            if(chi2dof>cfg["maxChi2align"]): continue
             ### scan x-y-theta misalignment
             for bx in range(1,histos["hTransform"].GetNbinsX()+1):
                 for by in range(1,histos["hTransform"].GetNbinsY()+1):

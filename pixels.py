@@ -104,6 +104,7 @@ def get_all_pixles_cvr(evt,hPixMatrix):
     return n_active_planes,pixels
 
 
+
 def get_all_pixles(evt,hPixMatrix,isCVRroot=False):
     n_active_planes = -1
     pixels = {}
