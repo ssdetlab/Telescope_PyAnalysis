@@ -5,6 +5,7 @@ doVtx         = 1
 runtype       = source
 pdgIdMatch    = 11
 nmax2process  = 100
+nCPU          = 10
 doplot        = 0
 doDiagnostics = 0
 doNoiseScan   = 0
@@ -46,6 +47,7 @@ nSigma   = 25
 
 [DETECTOR]
 detectors    = ALPIDE_0 ALPIDE_1 ALPIDE_2
+plane2det    = ALPIDE_0:2 ALPIDE_1:1 ALPIDE_2:0
 rdetectors   = ALPIDE_0:0,0,29.0 ALPIDE_1:0,0,54.8 ALPIDE_2:0,0,80.6
 misalignment = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-0.06625,dy=-0.00167,theta=0.00349 ALPIDE_2:dx=0,dy=0,theta=0
 maxchi2align  = 400

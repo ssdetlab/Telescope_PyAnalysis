@@ -22,7 +22,8 @@ def get_all_pixles_eudaq(evt,hPixMatrix):
     n_active_planes = 0
     for ipln in range(planes.size()):
         planeid = planes[ipln].plane_id
-        detector = cfg["detectorslist"][planeid]
+        # detector = cfg["detectorslist"][planeid]
+        detector = cfg["plane2det"][planeid]
         nhits = planes[ipln].hits.size()
         n_active_planes += (nhits>0)
         for ipix in range(nhits):

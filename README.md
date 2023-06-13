@@ -30,7 +30,7 @@ Run alignment with cosmics:
 - run noise scan (see above)
 - step 1: `python3 multiproc_analyzer.py -conf conf/config_file_name.txt`
 - step 2: `python3 alignment_analyzer.py -conf conf/config_file_name.txt -det ALPIDE_1`
-- step 3: look at the resulting histograms to see if the minimum is contained in all 3 ranges and change this as needed
+- step 3: look at the resulting histograms to see if the minimum is contained in all 3 ranges and change as needed
 - step 4: put the resulting misalinment values in the corresponding config file for the specific detector
 - setp 5: repeat step 1 and then compare the residuals and the chi2 histograms
 - step 6: repeat steps 1-5 for another detector, until all "middle" detectors are aligned

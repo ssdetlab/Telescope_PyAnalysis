@@ -71,6 +71,16 @@ class Config:
         f = [float(x) for x in s]
         return f
     
+    def getMapI2S(self,section,var):
+        s = self.getS(section,var).split(" ")
+        m = {}
+        for x in s:
+            x = x.split(":")
+            name = x[0]
+            sval = x[1]
+            m.update({int(sval):name})
+        return m
+    
     def getMap2ArrF(self,section,var):
         s = self.getS(section,var).split(" ")
         m = {}
@@ -109,7 +119,8 @@ class Config:
         self.add("runtype", self.getS('RUN','runtype'))
         self.add("pdgIdMatch", self.getI('RUN','pdgIdMatch'))
         self.add("nmax2process", self.getI('RUN','nmax2process'))
-        self.add("nmax2processmp", self.getI('RUN','nmax2processmp'))
+        self.add("nmax2processMP", self.getI('RUN','nmax2processMP'))
+        self.add("nCPU", self.getI('RUN','nCPU'))
         self.add("doplot", self.getB('RUN','doplot'))
         self.add("doDiagnostics", self.getB('RUN','doDiagnostics'))
         self.add("doNoiseScan", self.getB('RUN','doNoiseScan'))
@@ -141,6 +152,7 @@ class Config:
         self.add("nSigma", self.getF('NOISE','nSigma'))
 
         self.add("detectors", self.getArrS('DETECTOR','detectors'))
+        self.add("plane2det", self.getMapI2S('DETECTOR','plane2det'))
         self.add("rdetectors", self.getMap2ArrF('DETECTOR','rdetectors'))
         self.add("misalignment", self.getMap2MapF('DETECTOR','misalignment'))
         self.add("maxChi2align", self.getF('DETECTOR','maxchi2align'))
@@ -149,10 +161,10 @@ class Config:
         firstdet = self.map["detectors"][0]
         lastdet  = self.map["detectors"][-1]
         
-        detectorslist = list(self.map["detectors"])
-        rdetectorslist = detectorslist.reverse()
-        self.add("detectorslist", detectorslist)
-        self.add("rdetectorslist", detectorslist)
+        # detectorslist = list(self.map["detectors"])
+        # rdetectorslist = detectorslist.reverse()
+        # self.add("detectorslist", detectorslist)
+        # self.add("rdetectorslist", detectorslist)
         
         self.add("worldmargins", self.getF('DETECTOR','worldmargins'))
         # self.add("zFirst", self.map["zVtx"]*(1-self.map["worldmargins"]))

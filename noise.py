@@ -23,9 +23,10 @@ def trimNoise(h1D,pTrim,zeroSuppression=False):
     std = np.std(arr[:-nTrim])
     return avg,std
 
+
 def getNoiseThreshold(h1D,pTrim,nsigma,zeroSuppression=False):
     avg,std = trimNoise(h1D,pTrim,zeroSuppression)
-    threshold = int(avg+nsigma*std) if(std>0) else int(avg+nsigma*avg)
+    threshold = int(avg+nsigma*std) if(std>0) else int(avg+1)
     return avg,std,threshold
 
 

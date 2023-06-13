@@ -123,7 +123,7 @@ def RunNoiseScan(tfilename,tfnoisename):
                 i = h2D_noise[det].FindBin(pix.x,pix.y)
                 h1D_noise[det].AddBinContent(i,1)
                 h2D_noise[det].Fill(pix.x,pix.y)
-        if(nprocevents%100000==0 and nprocevents>0): print("event:",nprocevents)
+        if(nprocevents%1000==0 and nprocevents>0): print("event:",nprocevents)
         nprocevents += 1
     ### finish
     tfilenoise.Write()

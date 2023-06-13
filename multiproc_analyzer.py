@@ -253,7 +253,16 @@ if __name__ == "__main__":
     
     ### architecture depndent
     nCPUs = mp.cpu_count()
-    print("nCPUs:",nCPUs)
+    print("nCPUs available:",nCPUs)
+    print("nCPUs configured:",cfg["nCPU"])
+    if(cfg["nCPU"]<1):
+        print("nCPU config cannot be <1, quitting")
+        quit()
+    elif(cfg["nCPU"]>=1 and cfg["nCPU"]<=nCPUs):
+        nCPUs = cfg["nCPU"]
+    else:
+        print("nCPU config cannot be greater than",nCPUs,", quitting")
+        quit()
     
     # print config once
     show_config()
@@ -265,6 +274,7 @@ if __name__ == "__main__":
     tfilenamein = cfg["inputfile"]
     tfnoisename = tfilenamein.replace(".root","_noise.root")
     masked = GetNoiseMask(tfnoisename)
+    # print(masked)
     
     ### the output histos
     tfilenameout = tfilenamein.replace(".root","_multiprocess_histograms.root")
@@ -274,10 +284,12 @@ if __name__ == "__main__":
     
     ### start the loop
     tfile0,ttree0 = GetTree(tfilenamein)
-    nevents = cfg["nmax2processmp"] if(cfg["nmax2processmp"]>0) else ttree0.GetEntries()
+    neventsintree = ttree0.GetEntries()
+    nevents = cfg["nmax2processMP"] if(cfg["nmax2processMP"]>0 and cfg["nmax2processMP"]<=neventsintree) else neventsintree
     bundle = nCPUs
     fullrange = range(nevents)
     ranges = np.array_split(fullrange,bundle)
+    print("Going to analyze",ttree0.GetEntries(),"events - adjust the max events to process parameter (nmax2processMP) in the config file accordingly")
     for irng,rng in enumerate(ranges):
         print("Submitting range["+str(irng)+"]:",rng[0],"...",rng[-1])
         if(debug):
@@ -289,7 +301,19 @@ if __name__ == "__main__":
     pool.close()
     pool.join()
     
-        
+    
+    ### remove worker root files (they are anyhow empty out of the worker scope)
+    for irng,rng in enumerate(ranges):
+        sufx = "_"+str(irng)
+        tfoname = tfilenamein.replace(".root","_multiprocess_histograms"+sufx+".root")
+        tfoname = os.path.expanduser(tfoname)
+        if os.path.isfile(tfoname):
+            os.remove(tfoname)
+            print("file deleted:",tfoname)
+        else:
+            print("Error: %s file not found" % tfoname)
+
+
     #######################
     ### post processing ###
     #######################
