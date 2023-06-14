@@ -197,7 +197,6 @@ def Run(tfilename,tfnoisename,tfo,histos):
         for det in cfg["detectors"]:
             det_clusters = GetAllClusters(pixels[det],det)
             clusters.update( {det:det_clusters} )
-            fillClsHists(det,clusters[det],masked[det],histos)
             if(len(det_clusters)==1): nclusters += 1
         
         ### find the largest cluster
@@ -209,6 +208,7 @@ def Run(tfilename,tfnoisename,tfo,histos):
         if(nclusters!=len(cfg["detectors"])): continue ### CUT!!!
         histos["h_cutflow"].Fill( cfg["cuts"].index("N_{cls/det}==1") )
         for det in cfg["detectors"]:
+            fillClsHists(det,clusters[det],masked[det],histos)
             histos["h_cls_3D"].Fill( clusters[det][0].xmm,clusters[det][0].ymm,clusters[det][0].zmm )
 
         ### diagnostics, also with truth

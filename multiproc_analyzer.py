@@ -155,12 +155,12 @@ def analyze(tfilenamein,irange,evt_range,masked):
         for det in cfg["detectors"]:
             det_clusters = GetAllClusters(pixels[det],det)
             clusters.update( {det:det_clusters} )
-            fillClsHists(det,clusters[det],masked[det],histos)
+            # fillClsHists(det,clusters[det],masked[det],histos)
             if(len(det_clusters)==1): nclusters += 1
         if(nclusters!=len(cfg["detectors"])): continue ### CUT!!!
         histos["h_cutflow"].Fill( cfg["cuts"].index("N_{cls/det}==1") )
-        
         for det in cfg["detectors"]:
+            fillClsHists(det,clusters[det],masked[det],histos)
             histos["h_cls_3D"].Fill( clusters[det][0].xmm,clusters[det][0].ymm,clusters[det][0].zmm )
         
         ### prepare the clusters for the fit
@@ -196,6 +196,10 @@ def analyze(tfilenamein,irange,evt_range,masked):
         if(chi2ndof<=450):
             histos["h_cutflow"].Fill( cfg["cuts"].index("#chi^{2}/N_{DoF}#leq450") )
         
+        # ### TODO
+        # if(chi2ndof<0.5):
+        #     for det in cfg["detectors"]:
+        #         fillClsHists(det,clusters[det],masked[det],histos)
         
         ### Chi2 track to cluster residuals
         fill_trk2cls_residuals(points_SVD,direction,centroid,"h_Chi2fit_res_trk2cls",histos)
@@ -251,6 +255,9 @@ if __name__ == "__main__":
     # get the start time
     st = time.time()
     
+    # print config once
+    show_config()
+    
     ### architecture depndent
     nCPUs = mp.cpu_count()
     print("nCPUs available:",nCPUs)
@@ -263,11 +270,8 @@ if __name__ == "__main__":
     else:
         print("nCPU config cannot be greater than",nCPUs,", quitting")
         quit()
-    
-    # print config once
-    show_config()
-    
-    # Create a pool of workers
+
+    ### Create a pool of workers
     pool = mp.Pool(nCPUs)
     
     # Parallelize the analysis
@@ -283,13 +287,19 @@ if __name__ == "__main__":
     allhistos = book_histos(tfo)
     
     ### start the loop
+    print("\nStarting the loop:")
     tfile0,ttree0 = GetTree(tfilenamein)
     neventsintree = ttree0.GetEntries()
-    nevents = cfg["nmax2processMP"] if(cfg["nmax2processMP"]>0 and cfg["nmax2processMP"]<=neventsintree) else neventsintree
+    # nevents = cfg["nmax2processMP"] if(cfg["nmax2processMP"]>0 and cfg["nmax2processMP"]<=neventsintree) else neventsintree
+    nevents = neventsintree
+    if(cfg["nmax2processMP"]>0 and cfg["nmax2processMP"]<=neventsintree):
+        nevents = cfg["nmax2processMP"]
+        print("Going to analyze only",nevents,"events out of the",neventsintree,"available in the tree")
+    else:
+        print("config nmax2processMP =",cfg["nmax2processMP"],"--> will analyze all events in the tree:",neventsintree)
     bundle = nCPUs
     fullrange = range(nevents)
     ranges = np.array_split(fullrange,bundle)
-    print("Going to analyze",ttree0.GetEntries(),"events - adjust the max events to process parameter (nmax2processMP) in the config file accordingly")
     for irng,rng in enumerate(ranges):
         print("Submitting range["+str(irng)+"]:",rng[0],"...",rng[-1])
         if(debug):
