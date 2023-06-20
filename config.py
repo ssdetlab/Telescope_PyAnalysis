@@ -155,7 +155,7 @@ class Config:
         self.add("plane2det", self.getMapI2S('DETECTOR','plane2det'))
         self.add("rdetectors", self.getMap2ArrF('DETECTOR','rdetectors'))
         self.add("misalignment", self.getMap2MapF('DETECTOR','misalignment'))
-        self.add("maxChi2align", self.getF('DETECTOR','maxchi2align'))
+        self.add("maxchi2align", self.getF('DETECTOR','maxchi2align'))
         self.add("alignmentbins", self.getMap2MapF('DETECTOR','alignmentbins'))
         
         firstdet = self.map["detectors"][0]

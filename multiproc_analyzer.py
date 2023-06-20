@@ -182,6 +182,7 @@ def analyze(tfilenamein,irange,evt_range,masked):
         points_SVD,errors_SVD = SVD_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx,evtx)
         points_Chi2,errors_Chi2 = Chi2_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx,evtx)
         chisq,ndof,direction,centroid,params,success = fit_3d_chi2err(points_Chi2,errors_Chi2)
+        chisq_SVD,ndof_SVD,direction_SVD,centroid_SVD = fit_3d_SVD(points_SVD,errors_SVD)
         chi2ndof = chisq/ndof if(ndof>0) else 99999
         track = Track(clusters,points_Chi2,errors_Chi2,chisq,ndof,direction,centroid,params,success)
         if(not success): continue
@@ -203,6 +204,7 @@ def analyze(tfilenamein,irange,evt_range,masked):
         
         ### Chi2 track to cluster residuals
         fill_trk2cls_residuals(points_SVD,direction,centroid,"h_Chi2fit_res_trk2cls",histos)
+        # fill_trk2cls_residuals(points_SVD,direction_SVD,centroid_SVD,"h_Chi2fit_res_trk2cls",histos)
         ### Chi2 track to truth residuals
         if(cfg["isMC"]): fill_trk2tru_residuals(mcparticles,cfg["pdgIdMatch"],points_SVD,direction,centroid,"h_Chi2fit_res_trk2tru",histos)
         ### Chi2 fit points on laters

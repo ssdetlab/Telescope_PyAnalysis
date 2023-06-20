@@ -17,8 +17,8 @@ def SVD_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx=[],evtx=[]):
     clusters = [ [cfg["xVtx"], cfg["yVtx"], cfg["zVtx"]] ]  if(isvtx) else []
     clerrors = [ [cfg["exVtx"],cfg["eyVtx"],cfg["ezVtx"]] ] if(isvtx) else []
     for det in cfg["detectors"]:
-        clusters.append( [clsx[det]+cfg["offsets_x"][det], clsy[det]+cfg["offsets_y"][det], clsz[det]] )
-        clerrors.append( [clsdx[det],                      clsdy[det],                      cfg["ezCls"]] )
+        clusters.append( [clsx[det],  clsy[det],  clsz[det]] )
+        clerrors.append( [clsdx[det], clsdy[det], cfg["ezCls"]] )
     points = np.array(clusters)
     errors = np.array(clerrors)
     return points,errors
@@ -33,8 +33,8 @@ def Chi2_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx=[],evtx=[]):
     clerrors_y = [cfg["eyVtx"]] if(isvtx) else []
     clerrors_z = [cfg["ezVtx"]] if(isvtx) else []
     for det in cfg["detectors"]:
-        clusters_x.append( clsx[det]+cfg["offsets_x"][det] )
-        clusters_y.append( clsy[det]+cfg["offsets_y"][det] )
+        clusters_x.append( clsx[det] )
+        clusters_y.append( clsy[det] )
         clusters_z.append( clsz[det] )
         clerrors_x.append( clsdx[det] )
         clerrors_y.append( clsdy[det] )

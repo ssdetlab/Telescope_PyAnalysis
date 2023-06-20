@@ -65,10 +65,25 @@ def align(det,x,y):
     return x,y
 
 
+def res_track2clusterErr(detector, points, errors, direction, centroid):
+    r1,r2 = r1r2(direction, centroid)
+    x  = points[:,0]
+    y  = points[:,1]
+    ex = errors[:,0]
+    ey = errors[:,1]
+    zpoints = points[:,2]
+    i  = cfg["detectors"].index(detector)
+    if(len(points)==len(cfg["detectors"])+1): i = i+1 ### when the vertex is the first point in the points array
+    z  = zpoints[i]
+    xonline,yonline = xyofz(r1,r2,z)
+    dx = (xonline-x[i])/ex[i]
+    dy = (yonline-y[i])/ey[i]
+    return dx,dy
+
 def res_track2cluster(detector, points, direction, centroid):
     r1,r2 = r1r2(direction, centroid)
-    x  = points[:,0]#+offsets_x[detector]
-    y  = points[:,1]#+offsets_y[detector]
+    x  = points[:,0]
+    y  = points[:,1]
     zpoints = points[:,2]
     i  = cfg["detectors"].index(detector)
     if(len(points)==len(cfg["detectors"])+1): i = i+1 ### when the vertex is the first point in the points array
