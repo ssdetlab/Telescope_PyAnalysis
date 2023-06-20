@@ -7,7 +7,7 @@ pdgIdMatch     = 13
 nmax2process   = 1000000
 nmax2processMP = -1
 nCPU           = 10
-doplot         = 1
+doplot         = 0
 doDiagnostics  = 0
 doNoiseScan    = 0
 isCVRroot      = 0
@@ -49,10 +49,10 @@ nSigma   = 25
 [DETECTOR]
 detectors     = ALPIDE_0 ALPIDE_1 ALPIDE_2 ALPIDE_3
 plane2det     = ALPIDE_0:2 ALPIDE_1:1 ALPIDE_2:0 ALPIDE_3:3
-rdetectors    = ALPIDE_0:0,0,54 ALPIDE_1:0,0,79 ALPIDE_2:0,0,105 ALPIDE_3:0,0,131
-misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0,dy=0,theta=0 ALPIDE_2:dx=0,dy=0,theta=0 ALPIDE_3:dx=0,dy=0,theta=0
-# misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-0.07252106607957015,dy=-0.03888450852119407,theta=0.0017425412521728403 ALPIDE_2:dx=-0.0599774775776902,dy=-0.08726308508197989,theta=-0.0016677823185012649 ALPIDE_3:dx=-0.13775754470693172,dy=-0.13494981602769837,theta=-0.0013081904664525973
-maxchi2align  = 5
+rdetectors    = ALPIDE_0:0,0,54 ALPIDE_1:0,0,79.8 ALPIDE_2:0,0,105.6 ALPIDE_3:0,0,131.4
+# misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0,dy=0,theta=0 ALPIDE_2:dx=0,dy=0,theta=0 ALPIDE_3:dx=0,dy=0,theta=0
+misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-0.10938826170969418,dy=-0.1493384740045703,theta=0.0014428076000129262 ALPIDE_2:dx=-0.12745710105882302,dy=-0.3001419105356978,theta=-0.0017678456270335662 ALPIDE_3:dx=-0.23408620488492615,dy=-0.45082132674322023,theta=-0.0013164129720344333
+maxchi2align  = 1
 alignmentbins = dx:bins=50,min=-0.5,max=+0.5 dy:bins=50,min=-0.5,max=+0.5 theta:bins=50,min=-0.035,max=+0.035
 worldmargins  = 0.1
 worldscales   = x:1.2,1.2 y:1.5,1.5 z:1,1

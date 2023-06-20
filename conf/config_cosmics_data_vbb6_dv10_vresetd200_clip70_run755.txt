@@ -9,10 +9,10 @@ nmax2processMP = -1
 nCPU           = 10
 doplot         = 0
 doDiagnostics  = 0
-doNoiseScan    = 0
+doNoiseScan    = 1
 isCVRroot      = 0
 nprintout      = 20
-inputfile      = ~/Downloads/data_telescope/eudaq/Jun12/vbb6_dv10_vresetd200_clip70_run75x/tree_vbb6_dv10_vresetd200_clip70_run75x.root
+inputfile      = ~/Downloads/data_telescope/eudaq/Jun16/vbb6_dv10_vresetd200_clip70_run755/tree_vbb6_dv10_vresetd200_clip70_run755.root
 
 
 [CHIP]
@@ -50,10 +50,9 @@ nSigma   = 25
 detectors     = ALPIDE_0 ALPIDE_1 ALPIDE_2 ALPIDE_3
 plane2det     = ALPIDE_0:2 ALPIDE_1:1 ALPIDE_2:0 ALPIDE_3:3
 rdetectors    = ALPIDE_0:0,0,54 ALPIDE_1:0,0,79.8 ALPIDE_2:0,0,105.6 ALPIDE_3:0,0,131.4
-# misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0,dy=0,theta=0 ALPIDE_2:dx=0,dy=0,theta=0 ALPIDE_3:dx=0,dy=0,theta=0
-misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=-0.10450172988132728,dy=0.046528891970677624,theta=0.0013602069897309197 ALPIDE_2:dx=-0.11795134153495478,dy=0.09268787809687956,theta=-0.0018424284770148882 ALPIDE_3:dx=-0.21848897054549263,dy=0.1378258331616912,theta=-0.0013121405403739332
-maxchi2align  = 1
-alignmentbins = dx:bins=50,min=-0.5,max=+0.5 dy:bins=50,min=-0.5,max=+0.5 theta:bins=50,min=-0.035,max=+0.035
+misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0,dy=0,theta=0 ALPIDE_2:dx=0,dy=0,theta=0 ALPIDE_3:dx=0,dy=0,theta=0
+maxchi2align  = 3
+alignmentbins = dx:bins=60,min=-0.3,max=+0.2 dy:bins=60,min=-0.2,max=+0.2 theta:bins=60,min=-0.1,max=+0.1
 worldmargins  = 0.1
 worldscales   = x:1.2,1.2 y:1.5,1.5 z:1,1
 worldcenter   = 0,0,92

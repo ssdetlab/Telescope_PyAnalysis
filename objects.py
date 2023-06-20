@@ -35,7 +35,7 @@ class Cls:
         self.ymm0 = self.y*cfg["pix_y"]-cfg["chipY"]/2. ### original y (with misalignment)
         self.xmm,self.ymm = align(det,self.xmm0,self.ymm0) ### aligned x,y
         self.zmm  = cfg["rdetectors"][det][2]
-        ### add offset in x-y if any (MC...)
+        ### add known offset in x-y if any (MC...)
         self.xmm0 += cfg["offsets_x"][det]
         self.ymm0 += cfg["offsets_y"][det]
         self.xmm  += cfg["offsets_x"][det]

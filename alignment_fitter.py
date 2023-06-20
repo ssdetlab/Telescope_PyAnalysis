@@ -114,11 +114,16 @@ def fitSVD(event,refdet,dx,dy,theta):
         x = event.clusters[det][0].xmm
         y = event.clusters[det][0].ymm
         z = event.clusters[det][0].zmm
+        
         ### only for the non-reference detectors
         if(det!=refdet):
             x,y = rotate(Theta[det],x,y)
             x = x+dX[det]
             y = y+dY[det]
+
+        # x,y = rotate(Theta[det],x,y)
+        # x = x+dX[det]
+        # y = y+dY[det]
         
         clsx.update({det:x})
         clsy.update({det:y})
@@ -132,17 +137,36 @@ def fitSVD(event,refdet,dx,dy,theta):
     
     dabs = 0
     for det in cfg["detectors"]:
-        if(det==refdet): continue
-        dx,dy = res_track2clusterErr(det,points_SVD,errors_SVD,direction_SVD,centroid_SVD)
+        dx,dy = res_track2cluster(det,points_SVD,direction_SVD,centroid_SVD)
         dabs += math.sqrt(dx*dx + dy*dy)
     chi2ndof = chisq_SVD/ndof_SVD   if(ndof_SVD>0)  else -99999
     return chi2ndof,dabs
 
 
-def fit_misalignment(events,refdet):
-    nparperdet = 3
-    ndet2align = len(cfg["detectors"])-1
-    
+def scan_parameters():
+    k = 0
+    dxpar = [0]*3
+    dypar = [0]*3
+    dtpar = [0]*3
+    for det in cfg["detectors"]:
+        if(det==refdet): continue
+        for dx in np.arange(-0.5, +0.5, 0.01):
+            for dy in np.arange(-0.5, +0.5, 0.01):
+                for dt in np.arange(-0.05, +0.05, 0.001):
+                    dxpar[k] = dx
+                    dypar[k] = dy
+                    dtpar[k] = dt
+                    sum_dabs = 0
+                    sum_chi2 = 0
+                    for event in events:
+                        chisq,dabs = fitSVD(event,refdet,dxpar,dypar,dtpar)
+                        sum_dabs += dabs
+                        sum_chi2 += chisq
+                    print(dxpar,",",dypar,",",dtpar,",",sum_dabs/len(events),",",sum_chi2/len(events))
+        k += 1
+
+
+def fit_misalignment(events,ndet2align,nparperdet,refdet):
     ### Define the objective function to minimize (the chi^2 function)
     ### similar to https://root.cern.ch/doc/master/line3Dfit_8C_source.html
     def avg_chi2(params, events):
@@ -155,8 +179,8 @@ def fit_misalignment(events,refdet):
             chisq,dabs = fitSVD(event,refdet,dx,dy,dt)
             sum_dabs += dabs
             sum_chi2 += chisq
-        return sum_chi2/len(events)
-        # return sum_dabs/len(events)
+        # return sum_chi2/len(events)
+        return sum_dabs/len(events)
     
     ### https://stackoverflow.com/questions/24767191/scipy-is-not-optimizing-and-returns-desired-error-not-necessarily-achieved-due
     initial_params = [0]*(nparperdet*ndet2align)
@@ -167,7 +191,6 @@ def fit_misalignment(events,refdet):
     ranges.extend(dx_range)
     ranges.extend(dy_range)
     ranges.extend(dt_range)
-    # range_params = ( (-1,+1),(-1,+1),(-1,+1), (-1,+1),(-1,+1),(-1,+1), (-np.pi/100,+np.pi/100),(-np.pi/100,+np.pi/100),(-np.pi/100,+np.pi/100) )
     range_params = tuple(ranges)
     # for n in range(len(initial_params)): initial_params[n] = random.uniform(range_params[n][0],range_params[n][1])
     print("initial_params:",initial_params)
@@ -175,13 +198,10 @@ def fit_misalignment(events,refdet):
     # result = minimize(avg_chi2, initial_params, method='TNC', args=(events), bounds=range_params, jac='2-point', options={'disp': True, 'finite_diff_rel_step': 0.0000001, 'accuracy': 0.001}) ### first fit to get closer
     # result = minimize(avg_chi2, initial_params, method='SLSQP',       args=(events), bounds=range_params, options={'disp': True ,'eps' : 1e-3})
     # result = minimize(avg_chi2, initial_params, method='Nelder-Mead', args=(events), bounds=range_params) ### first fit to get closer
-
+    # result = minimize(avg_chi2, result.x,       method='Powell',      args=(events), bounds=range_params) ### second fit to finish
     # result = basinhopping(avg_chi2, initial_params, niter=50, minimizer_kwargs={"method": "L-BFGS-B", "args":(events,), "bounds":range_params})
     result = basinhopping(avg_chi2, initial_params, niter=50, minimizer_kwargs={"method": "SLSQP", "args":(events,), "bounds":range_params})
     
-    
-    # result = minimize(avg_chi2, initial_params, method='Nelder-Mead', args=(events), bounds=range_params) ### first fit to get closer
-    # result = minimize(avg_chi2, result.x,       method='Powell',      args=(events), bounds=range_params) ### second fit to finish
     ### get the chi^2 value and the number of degrees of freedom
     chisq = result.fun
     params  = result.x
@@ -202,7 +222,9 @@ if __name__ == "__main__":
     tfilenamein = cfg["inputfile"]
     files = getfiles(tfilenamein)
     
+    nparperdet = 3
     ndet2align = len(cfg["detectors"])-1
+    # ndet2align = len(cfg["detectors"])
     
     ### save all events
     events = []
@@ -225,30 +247,8 @@ if __name__ == "__main__":
     dabs0  = dabs0/len(events)
     print("Done collecting",len(events),"events with chisq0=",chisq0," and dabs0=",dabs0,". Now going to fit misalignments")
     
-    # k = 0
-    # dxpar = [0]*3
-    # dypar = [0]*3
-    # dtpar = [0]*3
-    # for det in cfg["detectors"]:
-    #     if(det==refdet): continue
-    #     for dx in np.arange(-0.5, +0.5, 0.01):
-    #         for dy in np.arange(-0.5, +0.5, 0.01):
-    #             for dt in np.arange(-0.05, +0.05, 0.001):
-    #                 dxpar[k] = dx
-    #                 dypar[k] = dy
-    #                 dtpar[k] = dt
-    #                 sum_dabs = 0
-    #                 sum_chi2 = 0
-    #                 for event in events:
-    #                     chisq,dabs = fitSVD(event,refdet,dxpar,dypar,dtpar)
-    #                     sum_dabs += dabs
-    #                     sum_chi2 += chisq
-    #                 print(dxpar,",",dypar,",",dtpar,",",sum_dabs/len(events),",",sum_chi2/len(events))
-    #     k += 1
-    
-    
     ### fit
-    params,result,success = fit_misalignment(events,refdet)
+    params,result,success = fit_misalignment(events,ndet2align,nparperdet,refdet)
     
     ### check
     chisq1 = 0
