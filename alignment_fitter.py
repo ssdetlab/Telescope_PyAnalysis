@@ -28,7 +28,7 @@ parser.add_argument('-conf', metavar='config file', required=True,  help='full p
 parser.add_argument('-ref', metavar='reference detector', required=False,  help='reference detector')
 argus = parser.parse_args()
 configfile = argus.conf
-refdet = argus.ref if(is not None) else ""
+refdet = argus.ref if(argus.ref is not None) else ""
 
 import config
 from config import *
