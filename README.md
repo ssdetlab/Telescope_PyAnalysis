@@ -28,9 +28,16 @@ Run analysis:
 
 Run alignment with cosmics:
 - run noise scan (see above)
-- step 1: `python3 multiproc_analyzer.py -conf conf/config_file_name.txt`
-- step 2: `python3 alignment_analyzer.py -conf conf/config_file_name.txt -det ALPIDE_1`
-- step 3: look at the resulting histograms to see if the minimum is contained in all 3 ranges and change as needed
-- step 4: put the resulting misalinment values in the corresponding config file for the specific detector
-- setp 5: repeat step 1 and then compare the residuals and the chi2 histograms
-- step 6: repeat steps 1-5 for another detector, until all "middle" detectors are aligned
+- step 1: `python3 multiproc_analyzer.py -conf conf/config_file_name.txt` with all `misalignment` parameters set to 0 in the config file
+- step 2: aligning wrt e.g. ALPIDE_0 or all at once after adjusting the parameters in the config: `maxchi2align`, `axes2align`, `naligniter`.
+  - `python3 alignment_fitter.py -conf conf/config_file_name.txt -det ALPIDE_0` or
+  - `python3 alignment_fitter.py -conf conf/config_file_name.txt`
+  - Notes:
+    - if e.g. `-det ALPIDE_0` was used then you need to keep all `misalignment` parameters of `ALPIDE_0` fixed to 0 in the config file always
+    - if the `axes2align` parameter equals to `xytheta` then the fit will be FULLY-SIMULTANEOUS in 3D
+    - if the `axes2align` parameter equals to `xy`, `xtheta` or `ytheta` then the fit will be SEMI-SIMULTANEOUS in 2D
+    - if the `axes2align` parameter equals to `x`, `y` or `theta` then the fit will be SEQUENTIAL (i.e. non-simultaneous) in 1D
+- step 3: put the non-zero resulting misalignment values in the config file for the relevant detectors
+- step 4: run step 1 again but with the new (non-zero wherever relevant) `misalignment` parameters in the config file (from step 3)
+- step 5: check the residuals and the chi2 histograms
+- step 6: if the fit is SEMI-SIMULTANEOUS or SEQUENTIAL, you need to repeat steps 2-5 for all axes (e.g. `axes2align=x`->`axes2align=y`->`axes2align=theta`)

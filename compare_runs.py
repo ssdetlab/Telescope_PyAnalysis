@@ -23,7 +23,7 @@ ROOT.gStyle.SetOptStat(0)
 cols = [ROOT.kBlack, ROOT.kRed, ROOT.kBlue, ROOT.kGreen+2, ]
 files = {
     "run74x":"~/Downloads/data_telescope/eudaq/Jun05/vbb6_dv10_vresetd200_clip70_run74x/tree_vbb6_dv10_vresetd200_clip70_run74x_multiprocess_histograms.root", ##delay=4.0us, strobe=100ns
-    "run75x":"~/Downloads/data_telescope/eudaq/Jun12/vbb6_dv10_vresetd200_clip70_run75x/tree_vbb6_dv10_vresetd200_clip70_run75x_multiprocess_histograms.root", ##delay=4.7us, strobe=100ns
+    # "run75x":"~/Downloads/data_telescope/eudaq/Jun12/vbb6_dv10_vresetd200_clip70_run75x/tree_vbb6_dv10_vresetd200_clip70_run75x_multiprocess_histograms.root", ##delay=4.7us, strobe=100ns
     # "run756":"~/Downloads/data_telescope/eudaq/Jun17/vbb6_dv10_vresetd200_clip70_run756/tree_vbb6_dv10_vresetd200_clip70_run756_multiprocess_histograms.root", ##delay=165ns, strobe=12us
     # "run759":"~/Downloads/data_telescope/eudaq/Jun18/vbb6_dv10_vresetd200_clip70_run759/tree_vbb6_dv10_vresetd200_clip70_run759_multiprocess_histograms.root", ##delay=165ns, strobe=100us
 }

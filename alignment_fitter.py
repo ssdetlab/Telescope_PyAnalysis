@@ -25,10 +25,10 @@ import random
 import argparse
 parser = argparse.ArgumentParser(description='serial_analyzer.py...')
 parser.add_argument('-conf', metavar='config file', required=True,  help='full path to config file')
-parser.add_argument('-ref', metavar='reference detector', required=True,  help='reference detector')
+parser.add_argument('-ref', metavar='reference detector', required=False,  help='reference detector')
 argus = parser.parse_args()
 configfile = argus.conf
-refdet = argus.ref
+refdet = argus.ref if(is not None) else ""
 
 import config
 from config import *
@@ -90,7 +90,7 @@ def getfiles(tfilenamein):
     return files
 
 
-def fitSVD(event,refdet,dx,dy,theta):
+def fitSVD(event,dx,dy,theta,refdet=""):
     clsx  = {}
     clsy  = {}
     clsz  = {}
@@ -103,7 +103,7 @@ def fitSVD(event,refdet,dx,dy,theta):
     Theta = {}
     i = 0
     for det in cfg["detectors"]:
-        if(det==refdet): continue
+        if(refdet!="" and det==refdet): continue
         dX.update({det:dx[i]})
         dY.update({det:dy[i]})
         Theta.update({det:theta[i]})
@@ -115,15 +115,16 @@ def fitSVD(event,refdet,dx,dy,theta):
         y = event.clusters[det][0].ymm
         z = event.clusters[det][0].zmm
         
-        ### only for the non-reference detectors
-        if(det!=refdet):
+        ### only for the non-reference detectors or all detectors?
+        if(refdet!=""):
+            if(det!=refdet):
+                x,y = rotate(Theta[det],x,y)
+                x = x+dX[det]
+                y = y+dY[det]
+        else:
             x,y = rotate(Theta[det],x,y)
             x = x+dX[det]
             y = y+dY[det]
-
-        # x,y = rotate(Theta[det],x,y)
-        # x = x+dX[det]
-        # y = y+dY[det]
         
         clsx.update({det:x})
         clsy.update({det:y})
@@ -140,7 +141,7 @@ def fitSVD(event,refdet,dx,dy,theta):
         dx,dy = res_track2cluster(det,points_SVD,direction_SVD,centroid_SVD)
         dabs += math.sqrt(dx*dx + dy*dy)
     chi2ndof = chisq_SVD/ndof_SVD   if(ndof_SVD>0)  else -99999
-    return chi2ndof,dabs
+    return chi2ndof,dabs,dx,dy
 
 
 def scan_parameters():
@@ -149,7 +150,7 @@ def scan_parameters():
     dypar = [0]*3
     dtpar = [0]*3
     for det in cfg["detectors"]:
-        if(det==refdet): continue
+        if(refdet!="" and det==refdet): continue
         for dx in np.arange(-0.5, +0.5, 0.01):
             for dy in np.arange(-0.5, +0.5, 0.01):
                 for dt in np.arange(-0.05, +0.05, 0.001):
@@ -158,49 +159,102 @@ def scan_parameters():
                     dtpar[k] = dt
                     sum_dabs = 0
                     sum_chi2 = 0
+                    sum_dx = 0
+                    sum_dy = 0
                     for event in events:
-                        chisq,dabs = fitSVD(event,refdet,dxpar,dypar,dtpar)
+                        chisq,dabs,dX,dY = fitSVD(event,dxpar,dypar,dtpar,refdet)
+                        sum_dx += dX
+                        sum_dy += dY
                         sum_dabs += dabs
                         sum_chi2 += chisq
                     print(dxpar,",",dypar,",",dtpar,",",sum_dabs/len(events),",",sum_chi2/len(events))
         k += 1
 
 
-def fit_misalignment(events,ndet2align,nparperdet,refdet):
+def init_params(axes,ndet2align,params):
+    dxFinal    = [0]*ndet2align
+    dyFinal    = [0]*ndet2align
+    thetaFinal = [0]*ndet2align
+    nparperdet = -1
+    if(axes=="xytheta"):
+        nparperdet = 3
+        dxFinal    = params[0:ndet2align]
+        dyFinal    = params[ndet2align:ndet2align*2]
+        thetaFinal = params[ndet2align*2:ndet2align*3]
+    elif(axes=="xy"):
+        nparperdet = 2
+        dxFinal    = params[0:ndet2align]
+        dyFinal    = params[ndet2align:ndet2align*2]
+    elif(axes=="xtheta"):
+        nparperdet = 2
+        dxFinal    = params[0:ndet2align]
+        thetaFinal = params[ndet2align:ndet2align*2]
+    elif(axes=="ytheta"):
+        nparperdet = 2
+        dyFinal    = params[0:ndet2align]
+        thetaFinal = params[ndet2align:ndet2align*2]
+    elif(axes=="x"):
+        nparperdet = 1
+        dxFinal = params[0:ndet2align]
+    elif(axes=="y"):
+        nparperdet = 1
+        dyFinal = params[0:ndet2align]
+    elif(axes=="theta"):
+        nparperdet = 1
+        thetaFinal = params[0:ndet2align]
+    else:
+        print("Unknown axes combination. Quitting.")
+        quit()
+    return dxFinal,dyFinal,thetaFinal,nparperdet
+
+
+def fit_misalignment(events,ndet2align,refdet,axes):
     ### Define the objective function to minimize (the chi^2 function)
     ### similar to https://root.cern.ch/doc/master/line3Dfit_8C_source.html
-    def avg_chi2(params, events):
-        dx = params[0:ndet2align]
-        dy = params[ndet2align:ndet2align*2]
-        dt = params[ndet2align*2:ndet2align*3]
+    def avg_chi2(params,events):
+        dx,dy,dt,nparperdet = init_params(axes,ndet2align,params)
+        sum_dx = 0
+        sum_dy = 0
         sum_dabs = 0
         sum_chi2 = 0
         for event in events:
-            chisq,dabs = fitSVD(event,refdet,dx,dy,dt)
+            chisq,dabs,dX,dY = fitSVD(event,dx,dy,dt,refdet)
             sum_dabs += dabs
+            sum_dx += dX
+            sum_dy += dY
             sum_chi2 += chisq
         # return sum_chi2/len(events)
         return sum_dabs/len(events)
     
+    nparperdet = -1
+    if  (axes=="xytheta"):                                nparperdet = 3
+    elif(axes=="xy" or axes=="xtheta" or axes=="ytheta"): nparperdet = 2
+    elif(axes=="x"  or axes=="y"      or axes=="theta"):  nparperdet = 1
+    else:
+        print("Unknown axes combination. Quitting.")
+        quit()
+    
     ### https://stackoverflow.com/questions/24767191/scipy-is-not-optimizing-and-returns-desired-error-not-necessarily-achieved-due
     initial_params = [0]*(nparperdet*ndet2align)
-    dx_range = [(cfg["alignmentbins"]["dx"]["min"],cfg["alignmentbins"]["dx"]["max"])]*ndet2align
-    dy_range = [(cfg["alignmentbins"]["dy"]["min"],cfg["alignmentbins"]["dy"]["max"])]*ndet2align
-    dt_range = [(cfg["alignmentbins"]["theta"]["min"],cfg["alignmentbins"]["theta"]["max"])]*ndet2align
+    dx_range = [(cfg["alignmentbins"]["dx"]["min"],cfg["alignmentbins"]["dx"]["max"])]*ndet2align       if("x"     in axes) else []
+    dy_range = [(cfg["alignmentbins"]["dy"]["min"],cfg["alignmentbins"]["dy"]["max"])]*ndet2align       if("y"     in axes) else []
+    dt_range = [(cfg["alignmentbins"]["theta"]["min"],cfg["alignmentbins"]["theta"]["max"])]*ndet2align if("theta" in axes) else []
     ranges = []
-    ranges.extend(dx_range)
-    ranges.extend(dy_range)
-    ranges.extend(dt_range)
+    if("x"     in axes): ranges.extend(dx_range)
+    if("y"     in axes): ranges.extend(dy_range)
+    if("theta" in axes): ranges.extend(dt_range)
     range_params = tuple(ranges)
     # for n in range(len(initial_params)): initial_params[n] = random.uniform(range_params[n][0],range_params[n][1])
     print("initial_params:",initial_params)
     print("range_params:",range_params)
+    ### https://stackoverflow.com/questions/52438263/scipy-optimize-gets-trapped-in-local-minima-what-can-i-do
+    ### https://stackoverflow.com/questions/25448296/scipy-basin-hopping-minimization-on-function-with-free-and-fixed-parameters
     # result = minimize(avg_chi2, initial_params, method='TNC', args=(events), bounds=range_params, jac='2-point', options={'disp': True, 'finite_diff_rel_step': 0.0000001, 'accuracy': 0.001}) ### first fit to get closer
     # result = minimize(avg_chi2, initial_params, method='SLSQP',       args=(events), bounds=range_params, options={'disp': True ,'eps' : 1e-3})
     # result = minimize(avg_chi2, initial_params, method='Nelder-Mead', args=(events), bounds=range_params) ### first fit to get closer
     # result = minimize(avg_chi2, result.x,       method='Powell',      args=(events), bounds=range_params) ### second fit to finish
     # result = basinhopping(avg_chi2, initial_params, niter=50, minimizer_kwargs={"method": "L-BFGS-B", "args":(events,), "bounds":range_params})
-    result = basinhopping(avg_chi2, initial_params, niter=50, minimizer_kwargs={"method": "SLSQP", "args":(events,), "bounds":range_params})
+    result = basinhopping(avg_chi2, initial_params, niter=cfg["naligniter"], minimizer_kwargs={"method": "SLSQP", "args":(events,), "bounds":range_params})
     
     ### get the chi^2 value and the number of degrees of freedom
     chisq = result.fun
@@ -215,21 +269,22 @@ if __name__ == "__main__":
     
     # print config once
     show_config()
-    if(refdet not in cfg["detectors"]):
+    if(refdet!="" and refdet not in cfg["detectors"]):
         print("Unknown detector:",refdet," --> quitting")
         quit()
     
     tfilenamein = cfg["inputfile"]
     files = getfiles(tfilenamein)
     
-    nparperdet = 3
-    ndet2align = len(cfg["detectors"])-1
-    # ndet2align = len(cfg["detectors"])
+    axes       = cfg["axes2align"]
+    ndet2align = len(cfg["detectors"])-1 if(refdet!="") else len(cfg["detectors"])
     
     ### save all events
     events = []
     chisq0 = 0
     dabs0  = 0
+    dX0    = 0
+    dY0    = 0
     allevents = 0
     for fpkl in files:
         suff = str(fpkl).split("_")[-1].replace(".pkl","")
@@ -238,35 +293,43 @@ if __name__ == "__main__":
             for event in data:
                 if(allevents%50==0 and allevents>0): print("Reading event #",allevents)
                 allevents += 1
-                chi2dof,dabs = fitSVD(event,refdet,[0]*ndet2align,[0]*ndet2align,[0]*ndet2align)
+                chi2dof,dabs,dX,dY = fitSVD(event,[0]*ndet2align,[0]*ndet2align,[0]*ndet2align,refdet)
                 if(chi2dof>cfg["maxchi2align"]): continue
                 events.append(event)
                 chisq0 += chi2dof
                 dabs0  += dabs
+                dX0    += dX
+                dY0    += dY
     chisq0 = chisq0/len(events)
     dabs0  = dabs0/len(events)
     print("Done collecting",len(events),"events with chisq0=",chisq0," and dabs0=",dabs0,". Now going to fit misalignments")
     
     ### fit
-    params,result,success = fit_misalignment(events,ndet2align,nparperdet,refdet)
+    params,result,success = fit_misalignment(events,ndet2align,refdet,axes)
     
     ### check
     chisq1 = 0
     dabs1  = 0
+    dX1    = 0
+    dY1    = 0
     allevents1 = 0
-    dxFinal = params[0:ndet2align]
-    dyFinal = params[ndet2align:ndet2align*2]
-    thetaFinal = params[ndet2align*2:ndet2align*3]
+    dxFinal,dyFinal,thetaFinal,nparperdet = init_params(axes,ndet2align,params)
     for event in events:
-        chi2dof,dabs = fitSVD(event,refdet,dxFinal,dyFinal,thetaFinal)
+        chi2dof,dabs,dX,dY = fitSVD(event,dxFinal,dyFinal,thetaFinal,refdet)
         chisq1 += chi2dof
         dabs1  += dabs
+        dX1    += dX
+        dY1    += dY
     chisq1 = chisq1/len(events)
     dabs1  = dabs1/len(events)
+    dX1    = dX1/len(events)
+    dY1    = dY1/len(events)
     
     ### sumarize
     print("\n----------------------------------------")
-    print("Reference detector:",refdet)
+    print("Alignment axes:",axes)
+    if(refdet!=""): print("Reference detector:",refdet)
+    else:           print("No reference detector")
     print("Events used:",len(events),"out of",allevents)
     print("Success?",success)
     print("chi2:",chisq1,"(original:",chisq0,")")

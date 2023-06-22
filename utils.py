@@ -59,7 +59,7 @@ def rotate(theta,x,y):
 
 
 def align(det,x,y):
-    x,y = rotate(-1.*cfg["misalignment"][det]["theta"],x,y)
+    x,y = rotate(cfg["misalignment"][det]["theta"],x,y)
     x = x+cfg["misalignment"][det]["dx"]
     y = y+cfg["misalignment"][det]["dy"]
     return x,y
