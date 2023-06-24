@@ -50,6 +50,7 @@ nSigma   = 25
 detectors     = ALPIDE_0 ALPIDE_1 ALPIDE_2 ALPIDE_3
 plane2det     = ALPIDE_0:2 ALPIDE_1:1 ALPIDE_2:0 ALPIDE_3:3
 rdetectors    = ALPIDE_0:0,0,54 ALPIDE_1:0,0,79.8 ALPIDE_2:0,0,105.6 ALPIDE_3:0,0,131.4
+### DEFAULT MISALIGNMENT (before doing the alignment procedure):
 # misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0,dy=0,theta=0 ALPIDE_2:dx=0,dy=0,theta=0 ALPIDE_3:dx=0,dy=0,theta=0
 ### GOOD ALIGNMENT! after doing SEQUENTIAL alignment x-->y-->theta with ALPIDE_0 as reference:
 # misalignment  = ALPIDE_0:dx=0,dy=0,theta=0 ALPIDE_1:dx=0.06478,dy=0.00909,theta=0.0014867 ALPIDE_2:dx=0.2202,dy=0.01502,theta=-0.001788 ALPIDE_3:dx=0.2877,dy=0.02257,theta=-0.00135

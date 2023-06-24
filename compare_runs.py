@@ -20,11 +20,13 @@ ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(0)
 ROOT.gStyle.SetOptStat(0)
 
-cols = [ROOT.kBlack, ROOT.kRed, ROOT.kBlue, ROOT.kGreen+2, ]
+cols = [ROOT.kBlack, ROOT.kRed, ROOT.kGreen+2, ROOT.kBlue, ]
+mrks = [20,          24,        32,         23]
 files = {
     "run74x":"~/Downloads/data_telescope/eudaq/Jun05/vbb6_dv10_vresetd200_clip70_run74x/tree_vbb6_dv10_vresetd200_clip70_run74x_multiprocess_histograms.root", ##delay=4.0us, strobe=100ns
-    # "run75x":"~/Downloads/data_telescope/eudaq/Jun12/vbb6_dv10_vresetd200_clip70_run75x/tree_vbb6_dv10_vresetd200_clip70_run75x_multiprocess_histograms.root", ##delay=4.7us, strobe=100ns
-    # "run756":"~/Downloads/data_telescope/eudaq/Jun17/vbb6_dv10_vresetd200_clip70_run756/tree_vbb6_dv10_vresetd200_clip70_run756_multiprocess_histograms.root", ##delay=165ns, strobe=12us
+    "run75x":"~/Downloads/data_telescope/eudaq/Jun12/vbb6_dv10_vresetd200_clip70_run75x/tree_vbb6_dv10_vresetd200_clip70_run75x_multiprocess_histograms.root", ##delay=4.7us, strobe=100ns
+    "run75y":"~/Downloads/data_telescope/eudaq/Jun17/vbb6_dv10_vresetd200_clip70_run75y/tree_vbb6_dv10_vresetd200_clip70_run75y_multiprocess_histograms.root", ##delay=165ns, strobe=12us
+    "run760":"~/Downloads/data_telescope/eudaq/Jun22/vbb6_dv10_vresetd200_clip70_run760/tree_vbb6_dv10_vresetd200_clip70_run760_multiprocess_histograms.root", ##delay=165ns, strobe=100ns
     # "run759":"~/Downloads/data_telescope/eudaq/Jun18/vbb6_dv10_vresetd200_clip70_run759/tree_vbb6_dv10_vresetd200_clip70_run759_multiprocess_histograms.root", ##delay=165ns, strobe=100us
 }
 detectors = ["ALPIDE_0", "ALPIDE_1", "ALPIDE_2", "ALPIDE_3"]
@@ -36,9 +38,11 @@ histprefx = ["h_cls_size", "h_Chi2fit_res_trk2cls_x", "h_Chi2fit_res_trk2cls_y",
 histos = {}
 runs = []
 runscol = {}
+runsmrk = {}
 for run,fname in files.items():
     runs.append(run)
     runscol.update({run:cols[runs.index(run)]})
+    runsmrk.update({run:mrks[runs.index(run)]})
 
 
 
@@ -52,6 +56,7 @@ def book_histos(tfo):
                 name = run+"_"+hname
                 tfi = TFile(fname,"READ")
                 histos.update({name:tfi.Get(hist).Clone(name)})
+                if(det in histos[name].GetTitle()): histos[name].SetTitle( det )
                 histos[name].SetDirectory(0)
 
 
@@ -69,9 +74,9 @@ def plot_2x2_histos(pdf,prefix):
             histos[run+"_"+hname].SetLineColor(runscol[run])
             histos[run+"_"+hname].SetMarkerColor(runscol[run])
             histos[run+"_"+hname].SetMarkerSize(1)
-            histos[run+"_"+hname].SetMarkerStyle(20)
+            histos[run+"_"+hname].SetMarkerStyle(runsmrk[run])
             histos[run+"_"+hname].Scale(1./histos[run+"_"+hname].Integral())
-            histos[run+"_"+hname].SetTitle(hname.replace("h_cls_size_",""))
+            histos[run+"_"+hname].SetTitle(det)
             histos[run+"_"+hname].GetYaxis().SetTitle("Normalized")
             tmax = histos[run+"_"+hname].GetMaximum()
             ymax = tmax if(tmax>ymax) else ymax
@@ -79,7 +84,7 @@ def plot_2x2_histos(pdf,prefix):
     for run in runs:
         for det in detectors:
             hname = prefix+"_"+det
-            histos[run+"_"+hname].SetMaximum(ymax*1.5)
+            histos[run+"_"+hname].SetMaximum(ymax*1.2)
     
     leg = TLegend(0.65,0.60,0.85,0.87)
     leg.SetFillStyle(4000) # will be transparent
