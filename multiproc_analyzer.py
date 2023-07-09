@@ -159,6 +159,14 @@ def analyze(tfilenamein,irange,evt_range,masked):
             if(len(det_clusters)==1): nclusters += 1
         if(nclusters!=len(cfg["detectors"])): continue ### CUT!!!
         histos["h_cutflow"].Fill( cfg["cuts"].index("N_{cls/det}==1") )
+
+        if(cfg["runtype"]=="source"):
+            Rx = clusters[det][0].xmm
+            Ry = clusters[det][0].ymm
+            R  = math.sqrt(Rx*Rx + Ry*Ry)
+            if(R>1): continue ### CUT!!!
+            histos["h_cutflow"].Fill( cfg["cuts"].index("R<1mm") )
+        
         for det in cfg["detectors"]:
             fillClsHists(det,clusters[det],masked[det],histos)
             histos["h_cls_3D"].Fill( clusters[det][0].xmm,clusters[det][0].ymm,clusters[det][0].zmm )

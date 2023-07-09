@@ -238,39 +238,78 @@ def Run(tfilename,tfnoisename,tfo,histos):
         best_Chi2 = {}
         best_value_Chi2 = +1e10
         ### loop on all cluster combinations
-        for i3 in range(len(clusters["ALPIDE_3"])):
-            for i2 in range(len(clusters["ALPIDE_2"])):
-                for i1 in range(len(clusters["ALPIDE_1"])):
-                    for i0 in range(len(clusters["ALPIDE_0"])):
+        
+        # for i0 in range(len(clusters["ALPIDE_0"])):
+        #     for i1 in range(len(clusters["ALPIDE_1"])):
+        #         for i2 in range(len(clusters["ALPIDE_2"])):
+        #             for i3 in range(len(clusters["ALPIDE_3"])):
+        #
+        #                 clsx  = {"ALPIDE_3":clusters["ALPIDE_3"][i3].xmm,  "ALPIDE_2":clusters["ALPIDE_2"][i2].xmm,  "ALPIDE_1":clusters["ALPIDE_1"][i1].xmm,  "ALPIDE_0":clusters["ALPIDE_0"][i0].xmm}
+        #                 clsy  = {"ALPIDE_3":clusters["ALPIDE_3"][i3].ymm,  "ALPIDE_2":clusters["ALPIDE_2"][i2].ymm,  "ALPIDE_1":clusters["ALPIDE_1"][i1].ymm,  "ALPIDE_0":clusters["ALPIDE_0"][i0].ymm}
+        #                 clsz  = {"ALPIDE_3":clusters["ALPIDE_3"][i3].zmm,  "ALPIDE_2":clusters["ALPIDE_2"][i2].zmm,  "ALPIDE_1":clusters["ALPIDE_1"][i1].zmm,  "ALPIDE_0":clusters["ALPIDE_0"][i0].zmm}
+        #                 clsdx = {"ALPIDE_3":clusters["ALPIDE_3"][i3].dxmm, "ALPIDE_2":clusters["ALPIDE_2"][i2].dxmm, "ALPIDE_1":clusters["ALPIDE_1"][i1].dxmm, "ALPIDE_0":clusters["ALPIDE_0"][i0].dxmm}
+        #                 clsdy = {"ALPIDE_3":clusters["ALPIDE_3"][i3].dymm, "ALPIDE_2":clusters["ALPIDE_2"][i2].dymm, "ALPIDE_1":clusters["ALPIDE_1"][i1].dymm, "ALPIDE_0":clusters["ALPIDE_0"][i0].dymm}
+        #
+        #                 #############################
+        #                 ### to check timing #TODO ###
+        #                 #############################
+        #
+        #                 points_SVD,errors_SVD = SVD_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx,evtx)
+        #                 points_Chi2,errors_Chi2 = Chi2_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx,evtx)
+        #                 chisq,ndof,direction_Chi2,centroid_Chi2,params_Chi2,success_Chi2 = fit_3d_chi2err(points_Chi2,errors_Chi2)
+        #
+        #                 # chisq,ndof,direction_Chi2,centroid_Chi2 = fit_3d_SVD(points_SVD,errors_SVD)
+        #                 # success_Chi2 = True
+        #                 # params_Chi2 = [1,0,0,0]
+        #
+        #                 chi2ndof_Chi2 = chisq/ndof if(ndof>0) else 99999
+        #                 if(success_Chi2 and chi2ndof_Chi2<best_value_Chi2): ### happens only when success_Chi2==True
+        #                     best_value_Chi2 = chi2ndof_Chi2
+        #                     best_Chi2.update( {"svd_points":points_SVD} )
+        #                     best_Chi2.update( {"points":points_Chi2} )
+        #                     best_Chi2.update( {"errors":errors_Chi2} )
+        #                     best_Chi2.update( {"direction":direction_Chi2} )
+        #                     best_Chi2.update( {"centroid":centroid_Chi2} )
+        #                     best_Chi2.update( {"chi2ndof":chi2ndof_Chi2} )
+        #                     best_Chi2.update( {"params":params_Chi2} )
+        
 
-                        clsx  = {"ALPIDE_3":clusters["ALPIDE_3"][i2].xmm,  "ALPIDE_2":clusters["ALPIDE_2"][i2].xmm,  "ALPIDE_1":clusters["ALPIDE_1"][i1].xmm,  "ALPIDE_0":clusters["ALPIDE_0"][i0].xmm}
-                        clsy  = {"ALPIDE_3":clusters["ALPIDE_3"][i2].ymm,  "ALPIDE_2":clusters["ALPIDE_2"][i2].ymm,  "ALPIDE_1":clusters["ALPIDE_1"][i1].ymm,  "ALPIDE_0":clusters["ALPIDE_0"][i0].ymm}
-                        clsz  = {"ALPIDE_3":clusters["ALPIDE_3"][i2].zmm,  "ALPIDE_2":clusters["ALPIDE_2"][i2].zmm,  "ALPIDE_1":clusters["ALPIDE_1"][i1].zmm,  "ALPIDE_0":clusters["ALPIDE_0"][i0].zmm}
-                        clsdx = {"ALPIDE_3":clusters["ALPIDE_3"][i2].dxmm, "ALPIDE_2":clusters["ALPIDE_2"][i2].dxmm, "ALPIDE_1":clusters["ALPIDE_1"][i1].dxmm, "ALPIDE_0":clusters["ALPIDE_0"][i0].dxmm}
-                        clsdy = {"ALPIDE_3":clusters["ALPIDE_3"][i2].dymm, "ALPIDE_2":clusters["ALPIDE_2"][i2].dymm, "ALPIDE_1":clusters["ALPIDE_1"][i1].dymm, "ALPIDE_0":clusters["ALPIDE_0"][i0].dymm}
+        clsx   = {}
+        clsy   = {}
+        clsz   = {}
+        clsdx  = {}
+        clsdy  = {}
+        for det in cfg["detectors"]:
+            clsx.update( {det:clusters[det][0].xmm} )
+            clsy.update( {det:clusters[det][0].ymm} )
+            clsz.update( {det:clusters[det][0].zmm} )
+            clsdx.update( {det:clusters[det][0].dxmm} )
+            clsdy.update( {det:clusters[det][0].dymm} )
 
-                        #############################
-                        ### to check timing #TODO ###
-                        #############################
+        #############################
+        ### to check timing #TODO ###
+        #############################
+        
+        points_SVD,errors_SVD = SVD_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx,evtx)
+        points_Chi2,errors_Chi2 = Chi2_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx,evtx)
+        chisq,ndof,direction_Chi2,centroid_Chi2,params_Chi2,success_Chi2 = fit_3d_chi2err(points_Chi2,errors_Chi2)
+        
+        # chisq,ndof,direction_Chi2,centroid_Chi2 = fit_3d_SVD(points_SVD,errors_SVD)
+        # success_Chi2 = True
+        # params_Chi2 = [1,0,0,0]
+        
+        chi2ndof_Chi2 = chisq/ndof if(ndof>0) else 99999
+        if(success_Chi2 and chi2ndof_Chi2<best_value_Chi2): ### happens only when success_Chi2==True
+            best_value_Chi2 = chi2ndof_Chi2
+            best_Chi2.update( {"svd_points":points_SVD} )
+            best_Chi2.update( {"points":points_Chi2} )
+            best_Chi2.update( {"errors":errors_Chi2} )
+            best_Chi2.update( {"direction":direction_Chi2} )
+            best_Chi2.update( {"centroid":centroid_Chi2} )
+            best_Chi2.update( {"chi2ndof":chi2ndof_Chi2} )
+            best_Chi2.update( {"params":params_Chi2} )
+            
 
-                        points_SVD,errors_SVD = SVD_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx,evtx)
-                        points_Chi2,errors_Chi2 = Chi2_candidate(clsx,clsy,clsz,clsdx,clsdy,vtx,evtx)
-                        chisq,ndof,direction_Chi2,centroid_Chi2,params_Chi2,success_Chi2 = fit_3d_chi2err(points_Chi2,errors_Chi2)
-                        
-                        # chisq,ndof,direction_Chi2,centroid_Chi2 = fit_3d_SVD(points_SVD,errors_SVD)
-                        # success_Chi2 = True
-                        # params_Chi2 = [1,0,0,0]
-                        
-                        chi2ndof_Chi2 = chisq/ndof if(ndof>0) else 99999
-                        if(success_Chi2 and chi2ndof_Chi2<best_value_Chi2): ### happens only when success_Chi2==True
-                            best_value_Chi2 = chi2ndof_Chi2
-                            best_Chi2.update( {"svd_points":points_SVD} )
-                            best_Chi2.update( {"points":points_Chi2} )
-                            best_Chi2.update( {"errors":errors_Chi2} )
-                            best_Chi2.update( {"direction":direction_Chi2} )
-                            best_Chi2.update( {"centroid":centroid_Chi2} )
-                            best_Chi2.update( {"chi2ndof":chi2ndof_Chi2} )
-                            best_Chi2.update( {"params":params_Chi2} )
         
         ### fit successful
         passFit = (len(best_Chi2)>0)
