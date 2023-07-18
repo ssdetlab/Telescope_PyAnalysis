@@ -59,4 +59,4 @@ worldradius  = (80.6-29.0)*0.7
 
 
 [CUTS]
-cuts = All N_{hits/det}>0 N_{cls/det}==1 Fitted #chi^{2}/N_{DoF}#leq450
+cuts = All N_{hits/det}>0 N_{cls/det}==1 Fitted #chi^{2}/N_{DoF}#leq10

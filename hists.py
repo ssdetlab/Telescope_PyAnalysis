@@ -29,12 +29,11 @@ pix_y_nbins = cfg["npix_y"]+1
 pix_y_min  = -0.5
 pix_y_max  = cfg["npix_y"]+0.5
 
-# absRes  = 0.15
 absRes  = 0.05
 absChi2 = 20
 if(cfg["runtype"]=="source"):
-    absRes  *= 100
-    absChi2 *= 100
+    absRes  *= 20
+    absChi2 *= 20
 nResBins = int(absRes*1000)
 
 ### book histos

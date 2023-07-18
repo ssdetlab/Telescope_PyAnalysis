@@ -16,6 +16,12 @@ from scipy.optimize import curve_fit
 from skspatial.objects import Line, Sphere
 from skspatial.plotting import plot_3d
 
+import argparse
+parser = argparse.ArgumentParser(description='serial_analyzer.py...')
+parser.add_argument('-run', metavar='run type', required=True,  help='run type [source/cosmics]')
+argus = parser.parse_args()
+runtype = argus.run
+
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(0)
 ROOT.gStyle.SetOptStat(0)
@@ -24,12 +30,15 @@ mm2um = 1000
 cols = [ROOT.kBlack, ROOT.kRed, ROOT.kGreen+2, ROOT.kOrange, ROOT.kBlue]
 mrks = [20,          24,        32,         25,            23]
 files = {
-    "run74x":"~/Downloads/data_telescope/eudaq/Jun05/vbb6_dv10_vresetd200_clip70_run74x/tree_vbb6_dv10_vresetd200_clip70_run74x_multiprocess_histograms.root", ##delay=4.0us, strobe=100ns
-    "run75x":"~/Downloads/data_telescope/eudaq/Jun12/vbb6_dv10_vresetd200_clip70_run75x/tree_vbb6_dv10_vresetd200_clip70_run75x_multiprocess_histograms.root", ##delay=4.7us, strobe=100ns
-    "run75y":"~/Downloads/data_telescope/eudaq/Jun17/vbb6_dv10_vresetd200_clip70_run75y/tree_vbb6_dv10_vresetd200_clip70_run75y_multiprocess_histograms.root", ##delay=165ns, strobe=12us
-    "run76x":"~/Downloads/data_telescope/eudaq/Jun27/vbb6_dv10_vresetd200_clip70_run76x/tree_vbb6_dv10_vresetd200_clip70_run76x_multiprocess_histograms.root", ##delay=1.5us, strobe=10us
-    "run760":"~/Downloads/data_telescope/eudaq/Jun22/vbb6_dv10_vresetd200_clip70_run760/tree_vbb6_dv10_vresetd200_clip70_run760_multiprocess_histograms.root", ##delay=165ns, strobe=100ns
-    # "run759":"~/Downloads/data_telescope/eudaq/Jun18/vbb6_dv10_vresetd200_clip70_run759/tree_vbb6_dv10_vresetd200_clip70_run759_multiprocess_histograms.root", ##delay=165ns, strobe=100us
+    # "run74x":"~/Downloads/data_telescope/eudaq/Jun05/vbb6_dv10_vresetd200_clip70_run74x/tree_vbb6_dv10_vresetd200_clip70_run74x_multiprocess_histograms.root", ##delay=4.0us, strobe=100ns
+    # "run75x":"~/Downloads/data_telescope/eudaq/Jun12/vbb6_dv10_vresetd200_clip70_run75x/tree_vbb6_dv10_vresetd200_clip70_run75x_multiprocess_histograms.root", ##delay=4.7us, strobe=100ns
+    # "run75y":"~/Downloads/data_telescope/eudaq/Jun17/vbb6_dv10_vresetd200_clip70_run75y/tree_vbb6_dv10_vresetd200_clip70_run75y_multiprocess_histograms.root", ##delay=165ns, strobe=12us
+    # "run76x":"~/Downloads/data_telescope/eudaq/Jun27/vbb6_dv10_vresetd200_clip70_run76x/tree_vbb6_dv10_vresetd200_clip70_run76x_multiprocess_histograms.root", ##delay=1.5us, strobe=10us
+    # "run760":"~/Downloads/data_telescope/eudaq/Jun22/vbb6_dv10_vresetd200_clip70_run760/tree_vbb6_dv10_vresetd200_clip70_run760_multiprocess_histograms.root", ##delay=165ns, strobe=100ns
+    # # "run759":"~/Downloads/data_telescope/eudaq/Jun18/vbb6_dv10_vresetd200_clip70_run759/tree_vbb6_dv10_vresetd200_clip70_run759_multiprocess_histograms.root", ##delay=165ns, strobe=100us
+    
+    "run77x":"~/Downloads/data_telescope/eudaq/Jul08/vbb0_dv10_vresetd147_clip60_run77x/tree_vbb0_dv10_vresetd147_clip60_run77x_multiprocess_histograms.root",
+    "run77y":"~/Downloads/data_telescope/eudaq/Jul12/vbb0_dv10_vresetd147_clip60_run77y/tree_vbb0_dv10_vresetd147_clip60_run77y_multiprocess_histograms.root",
 }
 dely = {
     "run74x":"4.0 #mus",
@@ -37,6 +46,8 @@ dely = {
     "run75y":"165 ns",
     "run76x":"1.5 #mus",
     "run760":"165 ns",
+    "run77x":"150 ns",
+    "run77y":"150 ns",
 }
 strb = {
     "run74x":"100 ns",
@@ -44,8 +55,11 @@ strb = {
     "run75y":"12 #mus",
     "run76x":"10 #mus",
     "run760":"100 ns",
+    "run77x":"10 #mus",
+    "run77y":"10 #mus",
 }
-detectors = ["ALPIDE_0", "ALPIDE_1", "ALPIDE_2", "ALPIDE_3"]
+detectors = ["ALPIDE_0", "ALPIDE_1", "ALPIDE_2"] 
+if(runtype=="cosmics"): detectors.append("ALPIDE_3")
 histprefx = ["h_cls_size", "h_Chi2fit_res_trk2cls_x", "h_Chi2fit_res_trk2cls_y", ]
 histos = {}
 runs = []
@@ -68,6 +82,7 @@ def book_histos(tfo):
                 hist = det+"/"+hname
                 name = run+"_"+hname
                 tfi = TFile(fname,"READ")
+                print("From file:",fname,"getting histogram named:",hist)
                 histos.update({name:tfi.Get(hist).Clone(name)})
                 if(det in histos[name].GetTitle()): histos[name].SetTitle( det )
                 histos[name].SetDirectory(0)
@@ -152,10 +167,12 @@ def plot_2x2_histos(pdf,prefix):
             tmax = histos[run+"_"+hname].GetMaximum()
             ymax = tmax if(tmax>ymax) else ymax
 
+    # factor = 2 if("cls_size" in prefix) else 1.2
+    factor = 1.2
     for run in runs:
         for det in detectors:
             hname = prefix+"_"+det
-            histos[run+"_"+hname].SetMaximum(ymax*1.2)
+            histos[run+"_"+hname].SetMaximum(ymax*factor)
     
     leg = TLegend(0.53,0.50,0.87,0.87)
     leg.SetFillStyle(4000) # will be transparent
@@ -171,6 +188,7 @@ def plot_2x2_histos(pdf,prefix):
     for count1,det in enumerate(detectors):
         p = cnv.cd(count1+1)
         p.SetTicks(1,1)
+        # if("cls_size" in prefix): p.SetLogy()
         hname = prefix+"_"+det
         for count2,run in enumerate(runs):                
             if(count2==0): histos[run+"_"+hname].Draw("e1p")

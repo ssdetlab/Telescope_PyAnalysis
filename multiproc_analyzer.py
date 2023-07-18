@@ -161,14 +161,17 @@ def analyze(tfilenamein,irange,evt_range,masked):
         histos["h_cutflow"].Fill( cfg["cuts"].index("N_{cls/det}==1") )
 
         if(cfg["runtype"]=="source"):
-            Rx = clusters[det][0].xmm
-            Ry = clusters[det][0].ymm
-            R  = math.sqrt(Rx*Rx + Ry*Ry)
-            if(R>1): continue ### CUT!!!
+            nOKsmallR = 0
+            for det in cfg["detectors"]:
+                Rx = clusters[det][0].xmm
+                Ry = clusters[det][0].ymm
+                R  = math.sqrt(Rx*Rx + Ry*Ry)
+                if(R<1): nOKsmallR += 1
+            if(nOKsmallR!=len(cfg["detectors"])): continue ### CUT!!!
             histos["h_cutflow"].Fill( cfg["cuts"].index("R<1mm") )
         
         for det in cfg["detectors"]:
-            fillClsHists(det,clusters[det],masked[det],histos)
+            # fillClsHists(det,clusters[det],masked[det],histos) ### TODO: this is now done aftet the fit
             histos["h_cls_3D"].Fill( clusters[det][0].xmm,clusters[det][0].ymm,clusters[det][0].zmm )
         
         ### prepare the clusters for the fit
@@ -193,8 +196,13 @@ def analyze(tfilenamein,irange,evt_range,masked):
         chisq_SVD,ndof_SVD,direction_SVD,centroid_SVD = fit_3d_SVD(points_SVD,errors_SVD)
         chi2ndof = chisq/ndof if(ndof>0) else 99999
         track = Track(clusters,points_Chi2,errors_Chi2,chisq,ndof,direction,centroid,params,success)
-        if(not success): continue
+        
+        if(not success): continue ### CUT!!!
         histos["h_cutflow"].Fill( cfg["cuts"].index("Fitted") )
+        
+        if(chi2ndof>10): continue ### CUT!!!
+        histos["h_cutflow"].Fill( cfg["cuts"].index("#chi^{2}/N_{DoF}#leq10") )
+        
         histos["h_3Dchi2err"].Fill(chi2ndof)
         histos["h_3Dchi2err_full"].Fill(chi2ndof)
         histos["h_3Dchi2err_zoom"].Fill(chi2ndof)
@@ -202,13 +210,17 @@ def analyze(tfilenamein,irange,evt_range,masked):
         histos["h_Chi2_theta"].Fill(track.theta)
         if(abs(np.sin(track.theta))>1e-10):
             histos["h_Chi2_theta_weighted"].Fill( track.theta,abs(1/(2*np.pi*np.sin(track.theta))) )
-        if(chi2ndof<=450):
-            histos["h_cutflow"].Fill( cfg["cuts"].index("#chi^{2}/N_{DoF}#leq450") )
         
-        # ### TODO
-        # if(chi2ndof<0.5):
-        #     for det in cfg["detectors"]:
-        #         fillClsHists(det,clusters[det],masked[det],histos)
+        ### fill cluster size histos ### TODO: this was done above the fit
+        for det in cfg["detectors"]: 
+            if(cfg["runtype"]=="source"):
+                if(chi2ndof<5):
+                    fillClsHists(det,clusters[det],masked[det],histos) ### must be a good fit, just to tag good electrons
+            elif(cfg["runtype"]=="cosmics"):
+                fillClsHists(det,clusters[det],masked[det],histos) ### good fits by construction for cosmics...
+            else:
+                print("Error in run type:",cfg["runtype"],"-->quitting")
+                quit()
         
         ### Chi2 track to cluster residuals
         fill_trk2cls_residuals(points_SVD,direction,centroid,"h_Chi2fit_res_trk2cls",histos)

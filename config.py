@@ -135,9 +135,9 @@ class Config:
         self.add("chipX",  self.map["npix_x"]*self.map["pix_x"])
         self.add("chipY",  self.map["npix_y"]*self.map["pix_y"])
 
-        self.add("xVtx", self.getB('VTX','xVtx'))
-        self.add("yVtx", self.getB('VTX','yVtx'))
-        self.add("zVtx", self.getB('VTX','zVtx'))
+        self.add("xVtx", self.getF('VTX','xVtx'))
+        self.add("yVtx", self.getF('VTX','yVtx'))
+        self.add("zVtx", self.getF('VTX','zVtx'))
         self.add("exVtx", self.getF('VTX','exVtx'))
         self.add("eyVtx", self.getF('VTX','exVtx'))
         self.add("ezVtx", self.getF('VTX','exVtx'))

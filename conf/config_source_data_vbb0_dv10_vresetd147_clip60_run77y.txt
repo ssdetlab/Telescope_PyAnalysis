@@ -12,7 +12,7 @@ doDiagnostics  = 0
 doNoiseScan    = 1
 isCVRroot      = 0
 nprintout      = 20
-inputfile      = ~/Downloads/data_telescope/eudaq/Jul08/vbb0_dv10_vresetd147_clip60_run77x/tree_vbb0_dv10_vresetd147_clip60_run77x.root
+inputfile      = ~/Downloads/data_telescope/eudaq/Jul12/vbb0_dv10_vresetd147_clip60_run77y/tree_vbb0_dv10_vresetd147_clip60_run77y.root
 
 
 [CHIP]
