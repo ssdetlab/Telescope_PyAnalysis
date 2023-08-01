@@ -282,6 +282,7 @@ if __name__ == "__main__":
     ### save all events
     events = []
     chisq0 = 0
+    chisq0_werr = 0
     dabs0  = 0
     dX0    = 0
     dY0    = 0
@@ -294,15 +295,24 @@ if __name__ == "__main__":
                 if(allevents%50==0 and allevents>0): print("Reading event #",allevents)
                 allevents += 1
                 chi2dof,dabs,dX,dY = fitSVD(event,[0]*ndet2align,[0]*ndet2align,[0]*ndet2align,refdet)
-                if(chi2dof>cfg["maxchi2align"]): continue
+                chi2dof_werr = event.track.chi2ndof 
+                # if(chi2dof>cfg["maxchi2align"]): continue
+                if(chi2dof_werr>cfg["maxchi2align"]): continue
                 events.append(event)
                 chisq0 += chi2dof
+                chisq0_werr += chi2dof_werr
                 dabs0  += dabs
                 dX0    += dX
                 dY0    += dY
-    chisq0 = chisq0/len(events)
-    dabs0  = dabs0/len(events)
-    print("Done collecting",len(events),"events with chisq0=",chisq0," and dabs0=",dabs0,". Now going to fit misalignments")
+    ncollectedevents = len(events)
+    print("Collected events:",ncollectedevents,", SVD fit chi2/dof=",chisq0,", Chi2Err fit chi2/dof=",chisq0_werr)
+    if(ncollectedevents<5):
+        print("Too few events collected ("+str(ncollectedevents)+") for the chi2/dof cut of maxchi2align=",cfg["maxchi2align"],"--> try to increase it in the config file.")
+        print("Quitting")
+        quit()
+    chisq0 = chisq0/ncollectedevents
+    dabs0  = dabs0/ncollectedevents
+    print("Done collecting",ncollectedevents,"events with chisq0=",chisq0," and dabs0=",dabs0,". Now going to fit misalignments")
     
     ### fit
     params,result,success = fit_misalignment(events,ndet2align,refdet,axes)
@@ -352,4 +362,4 @@ if __name__ == "__main__":
     et = time.time()
     # get the execution time
     elapsed_time = et - st
-    print('Execution time:', elapsed_time, 'seconds')
+    print('ֿֿ\nExecution time:', elapsed_time, 'seconds')

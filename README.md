@@ -38,6 +38,6 @@ Run alignment with cosmics:
     - if the `axes2align` parameter equals to `xy`, `xtheta` or `ytheta` then the fit will be SEMI-SIMULTANEOUS in 2D
     - if the `axes2align` parameter equals to `x`, `y` or `theta` then the fit will be SEQUENTIAL (i.e. non-simultaneous) in 1D
 - step 3: put the non-zero resulting misalignment values in the config file for the relevant detectors
-- step 4: run step 1 again but with the new (non-zero wherever relevant) `misalignment` parameters in the config file (from step 3)
+- step 4: run step 1 again, but with the new (non-zero wherever relevant) `misalignment` parameters in the config file (from step 3)
 - step 5: check the residuals and the chi2 histograms
 - step 6: if the fit is SEMI-SIMULTANEOUS or SEQUENTIAL, you need to repeat steps 2-5 for all axes (e.g. `axes2align=x`->`axes2align=y`->`axes2align=theta`)
