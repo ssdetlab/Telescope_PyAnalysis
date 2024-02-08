@@ -7,7 +7,7 @@ import subprocess
 import array
 import numpy as np
 import ROOT
-from ROOT import *
+# from ROOT import *
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -97,7 +97,7 @@ def book_histos(tfo):
                 hname = prefx+"_"+det
                 hist = det+"/"+hname
                 name = run+"_"+hname
-                tfi = TFile(fname,"READ")
+                tfi = ROOT.TFile(fname,"READ")
                 print("From file:",fname,"getting histogram named:",hist)
                 histos.update({name:tfi.Get(hist).Clone(name)})
                 if(det in histos[name].GetTitle()): histos[name].SetTitle( det+", "+voltages[idet] )
@@ -106,8 +106,8 @@ def book_histos(tfo):
 
 def alice_histos(scale0,scale6):
     print("setting alice histos")
-    h_V0_20deg = TH1D("h_cls_size_alice_V0",";Cluster size;Events",10,0.5,10.5)
-    h_V3_20deg = TH1D("h_cls_size_alice_V3",";Cluster size;Events",10,0.5,10.5)
+    h_V0_20deg = ROOT.TH1D("h_cls_size_alice_V0",";Cluster size;Events",10,0.5,10.5)
+    h_V3_20deg = ROOT.TH1D("h_cls_size_alice_V3",";Cluster size;Events",10,0.5,10.5)
     
     h_V0_20deg.SetFillColorAlpha(ROOT.kBlue,0.04)
     h_V3_20deg.SetFillColorAlpha(ROOT.kBlue,0.04)
@@ -146,7 +146,7 @@ def write_histos(tfo):
         hist.Write()
 
 def fit1(h,col,xmin,xmax):
-    g1 = TF1("g1", "gaus", xmin,xmax)
+    g1 = ROOT.TF1("g1", "gaus", xmin,xmax)
     # f1 = TF1("f1", "gaus(0)", xmin,xmax)
     g1.SetLineColor(col)
     # f1.SetLineColor(col)
@@ -160,9 +160,9 @@ def fit1(h,col,xmin,xmax):
     return g1
 
 def fit2(h,col):
-    g1 = TF1("g1", "gaus", xmin,xmax)
-    g2 = TF1("g2", "gaus", xmin,xmax)
-    f1 = TF1("f2", "gaus(0)+gaus(3)", xmin,xmax)
+    g1 = ROOT.TF1("g1", "gaus", xmin,xmax)
+    g2 = ROOT.TF1("g2", "gaus", xmin,xmax)
+    f1 = ROOT.TF1("f2", "gaus(0)+gaus(3)", xmin,xmax)
     g1.SetLineColor(col)
     g2.SetLineColor(col)
     f2.SetLineColor(col)
@@ -179,10 +179,10 @@ def fit2(h,col):
     return f2
 
 def fit3(h,col):
-    g1 = TF1("g1", "gaus", xmin,xmax)
-    g2 = TF1("g2", "gaus", xmin,xmax)
-    g3 = TF1("g3", "gaus", xmin,xmax)
-    f3 = TF1("f3", "gaus(0)+gaus(3)+gaus(6)", xmin,xmax)
+    g1 = ROOT.TF1("g1", "gaus", xmin,xmax)
+    g2 = ROOT.TF1("g2", "gaus", xmin,xmax)
+    g3 = ROOT.TF1("g3", "gaus", xmin,xmax)
+    f3 = ROOT.TF1("f3", "gaus(0)+gaus(3)+gaus(6)", xmin,xmax)
     g1.SetLineColor(col)
     g2.SetLineColor(col)
     g3.SetLineColor(col)
@@ -226,7 +226,7 @@ def plot_2x2_histos(pdf,prefix,alice=None):
             hname = prefix+"_"+det
             histos[run+"_"+hname].SetMaximum(ymax*factor)
     
-    leg = TLegend(0.50,0.63,0.89,0.87)
+    leg = ROOT.TLegend(0.50,0.63,0.89,0.87)
     leg.SetFillStyle(4000) # will be transparent
     leg.SetFillColor(0)
     leg.SetTextFont(42)
@@ -235,7 +235,7 @@ def plot_2x2_histos(pdf,prefix,alice=None):
         label = run+": Trg="+dely[run]+", Stb="+strb[run]
         leg.AddEntry(histos[run+"_"+prefix+"_ALPIDE_0"],label,"lp")
     
-    cnv = TCanvas("cnv","",1200,1000)
+    cnv = ROOT.TCanvas("cnv","",1200,1000)
     cnv.Divide(2,2)
     for count1,det in enumerate(detectors):
         p = cnv.cd(count1+1)
@@ -279,7 +279,7 @@ def plot_2x2_histos(pdf,prefix,alice=None):
 #####################################################################################
 
 tfilenameout = "compare.root"
-tfo = TFile(tfilenameout,"RECREATE")
+tfo = ROOT.File(tfilenameout,"RECREATE")
 book_histos(tfo)
 
 scale6 = gethmax(histos[run2fit+"_h_cls_size_ALPIDE_0"])

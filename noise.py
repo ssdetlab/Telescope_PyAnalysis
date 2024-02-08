@@ -4,7 +4,7 @@ import math
 import array
 import numpy as np
 import ROOT
-from ROOT import *
+# from ROOT import *
 
 import objects
 from objects import *
@@ -65,7 +65,7 @@ def getGoodPixels(det,pixels,masked,hPixMatix):
 
 def GetNoiseMask(tfnoisename):
     print("Reading noise scan histos from:",tfnoisename)
-    tfilenoise = TFile(tfnoisename,"READ")
+    tfilenoise = ROOT.TFile(tfnoisename,"READ")
     noise_threshold = {}
     masked          = {}
     h1D_noise       = {}

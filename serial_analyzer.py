@@ -7,7 +7,7 @@ import subprocess
 import array
 import numpy as np
 import ROOT
-from ROOT import *
+# from ROOT import *
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -63,10 +63,10 @@ print("-------------------------------------------------------------------------
 
 print("---- start loading libs")
 ### see https://root.cern/manual/python/
-gInterpreter.AddIncludePath('~/telescope_event/')
-gSystem.Load('libtel_event_dict.dylib')
-gInterpreter.AddIncludePath('~/corryvreckan/corryvreckan-master/src/objects/')
-gSystem.Load('libCorryvreckanObjects.dylib')
+ROOT.gInterpreter.AddIncludePath('~/telescope_event/')
+ROOT.gSystem.Load('libtel_event_dict.dylib')
+ROOT.gInterpreter.AddIncludePath('~/corryvreckan/corryvreckan-master/src/objects/')
+ROOT.gSystem.Load('libCorryvreckanObjects.dylib')
 print("---- finish loading libs")
 
 # # tfilenamein = "~/Downloads/data_telescope/eudaq/Apr03/source_vbb6_dv15/tree_vbb6_sr90_120_Apr03_dv15.root" ## threshold is ~120e(?)
@@ -90,7 +90,7 @@ print("---- finish loading libs")
 
 
 def GetTree(tfilename):
-    tfile = TFile(tfilename,"READ")
+    tfile = ROOT.TFile(tfilename,"READ")
     ttree = None
     if(not cfg["isMC"]): ttree = tfile.Get("MyTree")
     else:
@@ -102,13 +102,13 @@ def GetTree(tfilename):
 
 
 def RunNoiseScan(tfilename,tfnoisename):
-    tfilenoise = TFile(tfnoisename,"RECREATE")
+    tfilenoise = ROOT.TFile(tfnoisename,"RECREATE")
     tfilenoise.cd()
     h1D_noise       = {}
     h2D_noise       = {}
     for det in cfg["detectors"]:
-        h1D_noise.update( { det:TH1D("h_noisescan_pix_occ_1D_"+det,";Pixel;Hits",cfg["npix_x"]*cfg["npix_y"],1,cfg["npix_x"]*cfg["npix_y"]+1) } )
-        h2D_noise.update( { det:TH2D("h_noisescan_pix_occ_2D_"+det,";Pixel;Hits",cfg["npix_x"]+1,-0.5,cfg["npix_x"]+0.5, cfg["npix_y"]+1,-0.5,cfg["npix_y"]+0.5) } )
+        h1D_noise.update( { det:ROOT.TH1D("h_noisescan_pix_occ_1D_"+det,";Pixel;Hits",cfg["npix_x"]*cfg["npix_y"],1,cfg["npix_x"]*cfg["npix_y"]+1) } )
+        h2D_noise.update( { det:ROOT.TH2D("h_noisescan_pix_occ_2D_"+det,";Pixel;Hits",cfg["npix_x"]+1,-0.5,cfg["npix_x"]+0.5, cfg["npix_y"]+1,-0.5,cfg["npix_y"]+0.5) } )
 
     ### get the tree
     tfile,ttree = GetTree(tfilename)
@@ -450,7 +450,7 @@ else:
         quit()
 
 tfilenameout = tfilenamein.replace(".root","_histograms.root")
-tfo = TFile(tfilenameout,"RECREATE")
+tfo = ROOT.TFile(tfilenameout,"RECREATE")
 tfo.cd()
 # book_histos(tfo,absRes,absChi2)
 histos = book_histos(tfo)

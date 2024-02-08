@@ -9,7 +9,7 @@ import subprocess
 import array
 import numpy as np
 import ROOT
-from ROOT import *
+# from ROOT import *
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -122,7 +122,7 @@ def analyze(fpkl,aligndet,suff):
     lock.acquire()
     
     tfoname = str(fpkl).replace(".pkl","_alignment.root")
-    tfo = TFile(tfoname,"RECREATE")
+    tfo = ROOT.TFile(tfoname,"RECREATE")
     tfo.cd()
     histos = book_alignment_histos(tfo)
     for name,hist in histos.items():
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     
     ### histos
     tfoname = tfilenamein.replace(".root","_alignment_"+aligndet+".root")
-    tfo = TFile(tfoname,"RECREATE")
+    tfo = ROOT.TFile(tfoname,"RECREATE")
     tfo.cd()
     allhistos = book_alignment_histos(tfo)
     

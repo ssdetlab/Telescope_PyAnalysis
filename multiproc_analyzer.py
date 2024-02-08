@@ -9,7 +9,7 @@ import subprocess
 import array
 import numpy as np
 import ROOT
-from ROOT import *
+# from ROOT import *
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -66,10 +66,10 @@ ROOT.gStyle.SetOptFit(0)
 
 # print("---- start loading libs")
 ### see https://root.cern/manual/python/
-gInterpreter.AddIncludePath('~/telescope_event/')
-gSystem.Load('libtel_event_dict.dylib')
-gInterpreter.AddIncludePath('~/corryvreckan/corryvreckan-master/src/objects/')
-gSystem.Load('libCorryvreckanObjects.dylib')
+ROOT.gInterpreter.AddIncludePath('~/telescope_event/')
+ROOT.gSystem.Load('libtel_event_dict.dylib')
+ROOT.gInterpreter.AddIncludePath('~/corryvreckan/corryvreckan-master/src/objects/')
+ROOT.gSystem.Load('libCorryvreckanObjects.dylib')
 # print("---- finish loading libs")
 
 ###############################################################
@@ -81,7 +81,7 @@ allhistos = {}
 
 
 def GetTree(tfilename):
-    tfile = TFile(tfilename,"READ")
+    tfile = ROOT.TFile(tfilename,"READ")
     ttree = None
     if(not cfg["isMC"]): ttree = tfile.Get("MyTree")
     else:
@@ -103,7 +103,7 @@ def analyze(tfilenamein,irange,evt_range,masked):
     
     ### histos
     tfoname = tfilenamein.replace(".root","_multiprocess_histograms"+sufx+".root")
-    tfo = TFile(tfoname,"RECREATE")
+    tfo = ROOT.TFile(tfoname,"RECREATE")
     tfo.cd()
     histos = book_histos(tfo)
     for name,hist in histos.items():
@@ -304,7 +304,7 @@ if __name__ == "__main__":
     
     ### the output histos
     tfilenameout = tfilenamein.replace(".root","_multiprocess_histograms.root")
-    tfo = TFile(tfilenameout,"RECREATE")
+    tfo = ROOT.TFile(tfilenameout,"RECREATE")
     tfo.cd()
     allhistos = book_histos(tfo)
     
